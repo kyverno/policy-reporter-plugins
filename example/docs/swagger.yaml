@@ -1,0 +1,136 @@
+basePath: /api
+definitions:
+  api.Details:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api.DetailsItem'
+        type: array
+      title:
+        type: string
+    type: object
+  api.DetailsItem:
+    properties:
+      title:
+        type: string
+      value:
+        type: string
+    type: object
+  api.Engine:
+    properties:
+      name:
+        type: string
+      subjects:
+        items:
+          type: string
+        type: array
+      version:
+        type: string
+    type: object
+  api.Policy:
+    properties:
+      additional:
+        items:
+          $ref: '#/definitions/api.Details'
+        type: array
+      category:
+        type: string
+      code:
+        $ref: '#/definitions/api.SourceCode'
+      description:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/api.DetailsItem'
+        type: array
+      engine:
+        $ref: '#/definitions/api.Engine'
+      name:
+        type: string
+      namespace:
+        type: string
+      references:
+        items:
+          $ref: '#/definitions/api.Reference'
+        type: array
+      severity:
+        type: string
+      title:
+        type: string
+    type: object
+  api.PolicyListItem:
+    properties:
+      category:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      namespace:
+        type: string
+      severity:
+        type: string
+      title:
+        type: string
+    type: object
+  api.Reference:
+    properties:
+      url:
+        type: string
+    type: object
+  api.SourceCode:
+    properties:
+      content:
+        type: string
+      contentType:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: frank.jogeleit@web.de
+    name: Frank Jogeleit
+  description: This is an example API for the Policy Reporter UI Plugin Interface.
+  title: Policy Reporter UI Plugin Example API
+  version: 0.0.1
+paths:
+  /policies:
+    get:
+      description: list all available policies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.PolicyListItem'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: List of Policies
+      tags:
+      - policies
+  /policies/{name}:
+    get:
+      description: get policy details by unique name, try "disallow-capabilities",
+        "CVE-2022-41723" or "min"
+      parameters:
+      - description: Unique Policy Name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Policy'
+        "500":
+          description: Internal Server Error
+      summary: Get single Policy by Name
+      tags:
+      - policies
+swagger: "2.0"
