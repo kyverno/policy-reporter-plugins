@@ -110,7 +110,7 @@ The `/policies` API provides a list of Policies. This could be a list of all pol
 
 ### [GET] Policy API
 
-The `/policy/{name}` API provides details of a single policy selected by its unique name.
+The `/policies/{name}` API provides details of a single policy selected by its unique name.
 
 Examples:
 
