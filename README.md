@@ -2,7 +2,7 @@
 
 ## Introduction
 
-With Policy Reporter UI v2 a new plugin system will be introduced. While Plugins in v1 were only used for integrating the [Policy Reporter Kyverno Plugin](https://github.com/kyverno/policy-reporter-kyverno-plugin), the new system will be much more generic and needs to provide a defined REST API, no actual UI changes are required. Plugin information will be included in existing views and providing details about policies assiciated with the PolicyReportResults.
+With Policy Reporter UI v2 a new plugin system will be introduced. While plugins in v1 were only used for integrating the [Policy Reporter Kyverno Plugin](https://github.com/kyverno/policy-reporter-kyverno-plugin), the new system will be more generic and needs to provide a defined set of REST APIs, no actual UI changes are required. Plugin information will be included in existing views and providing details about policies.
 
 ## Official Plugins
 
@@ -14,15 +14,15 @@ An updated version of the already existing "Policy Reporter Kyverno Plugin". It 
 
 ### Trivy Plugin
 
-The new Trivy Plugin provides details about results comming from VulnerabilityReports. While the actual results still comming from PolicyReports created by [Trivy Operator Polr Adapter](https://github.com/fjogeleit/trivy-operator-polr-adapter), the plugin provides details about CVEs and GHSA foundings, like detailed description, affected / fixed versions and references.
+The new Trivy Plugin provides details about results comming from VulnerabilityReports. While the actual results still comming from PolicyReports created by [Trivy Operator Polr Adapter](https://github.com/fjogeleit/trivy-operator-polr-adapter), the plugin supplements details about CVEs and GHSA foundings, like detailed description, affected / fixed versions and references.
 
 ## API
 
-One Plugin relates to one "source" of PolicyReports. An Plugin has to implement two APIs.
+One Plugin relates to one "source" of PolicyReports.
 
 ### [GET] Policies API
 
-The `/policies` API provides a list of Policies. This could be a list of all policies provided or a list of all policies which produced a __PolicyReportResult__.
+The `/policies` API provides a list of Policies. This could be a list of all policies or a list of all policies which produced a __PolicyReportResult__.
 
 #### Trivy Plugin
 
