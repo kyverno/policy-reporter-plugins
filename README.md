@@ -66,6 +66,8 @@ The `/policies` API provides a list of Policies. This could be a list of all pol
 ]
 ```
 
+![Trivy Policy List](./screens/trivy-list.png)
+
 #### Kyverno Plugin
 
 ```json
@@ -108,6 +110,8 @@ The `/policies` API provides a list of Policies. This could be a list of all pol
 ]
 ```
 
+![Kyverno Policy List](./screens/kyverno-list.png)
+
 ### [GET] Policy API
 
 The `/policies/{name}` API provides details of a single policy selected by its unique name.
@@ -126,10 +130,11 @@ http://localhost:8083/policies/default/restrict-apparmor-profiles
 
 ```json
 {
-  "category": "",
-  "name": "CVE-2022-41723",
-  "title": "CVE-2022-41723",
-  "description": "A maliciously crafted HTTP/2 stream could cause excessive CPU consumption in the HPACK decoder, sufficient to cause a denial of service from a small number of small requests.",
+  "category": "Vulnerability Scan",
+  "name": "GHSA-m425-mq94-257g",
+  "title": "gRPC-Go HTTP/2 Rapid Reset vulnerability",
+  "description": "### Impact\nIn affected releases of gRPC-Go, it is possible for an attacker to send HTTP/2 requests, cancel them, and send subsequent requests, which is valid by the HTTP/2 protocol, but would cause the gRPC-Go server to launch more concurrent method handlers than the configured maximum stream limit.\n\n### Patches\nThis vulnerability was addressed by #6703 and has been included in patch releases: 1.56.3, 1.57.1, 1.58.3.  It is also included in the latest release, 1.59.0.\n\nAlong with applying the patch, users should also ensure they are using the `grpc.MaxConcurrentStreams` server option to apply a limit to the server's resources used for any single connection.\n\n### Workarounds\nNone.\n\n### References\n#6703\n",
+  "severity": "high",
   "engine": {
     "name": "Trivy",
     "subjects": [
@@ -139,77 +144,97 @@ http://localhost:8083/policies/default/restrict-apparmor-profiles
   },
   "references": [
     {
-      "url": "https://go.dev/issue/57855"
+      "url": "https://github.com/grpc/grpc-go/security/advisories/GHSA-m425-mq94-257g"
     },
     {
-      "url": "https://go.dev/cl/468135"
+      "url": "https://github.com/grpc/grpc-go/pull/6703"
     },
     {
-      "url": "https://go.dev/cl/468295"
+      "url": "https://github.com/grpc/grpc-go/commit/f2180b4d5403d2210b30b93098eb7da31c05c721"
     },
     {
-      "url": "https://groups.google.com/g/golang-announce/c/V0aBFqaFs_E"
-    },
-    {
-      "url": "https://pkg.go.dev/vuln/GO-2023-1571"
-    },
-    {
-      "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4MA5XS5DAOJ5PKKNG5TUXKPQOFHT5VBC/"
-    },
-    {
-      "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/RLBQ3A7ROLEQXQLXFDLNJ7MYPKG5GULE/"
-    },
-    {
-      "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/RGW7GE2Z32ZT47UFAQFDRQE33B7Q7LMT/"
-    },
-    {
-      "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/XX3IMUTZKRQ73PBZM4E2JP4BKYH4C6XE/"
-    },
-    {
-      "url": "https://www.couchbase.com/alerts/"
-    },
-    {
-      "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/4BUK2ZIAGCULOOYDNH25JPU6JBES5NF2/"
-    },
-    {
-      "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/T7N5GV4CHH6WAGX3GFMDD3COEOVCZ4RI/"
-    },
-    {
-      "url": "https://lists.fedoraproject.org/archives/list/package-announce@lists.fedoraproject.org/message/REMHVVIBDNKSRKNOTV7EQSB7CYQWOUOU/"
-    },
-    {
-      "url": "https://security.gentoo.org/glsa/202311-09"
+      "url": "https://github.com/advisories/GHSA-m425-mq94-257g"
     }
   ],
   "details": [
     {
-      "title": "Assigner",
-      "value": "Go"
+      "title": "CVSS Score",
+      "value": "7.50"
+    },
+    {
+      "title": "CVSS VectorString",
+      "value": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
     },
     {
       "title": "Published",
-      "value": "2023-02-28T17:19:45.801Z"
+      "value": "2023-10-25T21:17:37Z"
+    },
+    {
+      "title": "Severity",
+      "value": "high"
     }
   ],
   "additional": [
     {
-      "title": "Affected Versions",
+      "title": "google.golang.org/grpc",
       "items": [
         {
-          "title": "net/http",
-          "value": "from 0 before 1.19.6"
+          "title": "Ecosystem",
+          "value": "go"
         },
         {
-          "title": "net/http",
-          "value": "from 1.20.0-0 before 1.20.1"
+          "title": "First Patched",
+          "value": "1.56.3"
         },
         {
-          "title": "golang.org/x/net/http2",
-          "value": "from 0 before 0.7.0"
+          "title": "Version Range",
+          "value": "< 1.56.3"
         },
         {
-          "title": "golang.org/x/net/http2/hpack",
-          "value": "from 0 before 0.7.0"
+          "title": "Functions",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "title": "google.golang.org/grpc",
+      "items": [
+        {
+          "title": "Ecosystem",
+          "value": "go"
+        },
+        {
+          "title": "First Patched",
+          "value": "1.57.1"
+        },
+        {
+          "title": "Version Range",
+          "value": ">= 1.57.0, < 1.57.1"
+        },
+        {
+          "title": "Functions",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "title": "google.golang.org/grpc",
+      "items": [
+        {
+          "title": "Ecosystem",
+          "value": "go"
+        },
+        {
+          "title": "First Patched",
+          "value": "1.58.3"
+        },
+        {
+          "title": "Version Range",
+          "value": ">= 1.58.0, < 1.58.3"
+        },
+        {
+          "title": "Functions",
+          "value": ""
         }
       ]
     }
@@ -217,14 +242,16 @@ http://localhost:8083/policies/default/restrict-apparmor-profiles
 }
 ```
 
+![Trivy Policy Details](./screens/trivy-details.png)
+
 #### Kyverno Plugin
 
 ```json
 {
-  "category": "Pod Security Standards (Baseline)",
-  "name": "disallow-capabilities",
-  "title": "Disallow Capabilities",
-  "description": "Adding capabilities beyond those listed in the policy must be disallowed.",
+  "category": "Pod Security Standards (Restricted)",
+  "name": "require-run-as-nonroot",
+  "title": "Require runAsNonRoot",
+  "description": "Containers must be required to run as non-root users. This policy ensures `runAsNonRoot` is set to `true`. A known issue prevents a policy such as this using `anyPattern` from being persisted properly in Kubernetes 1.23.0-1.23.2.",
   "severity": "medium",
   "engine": {
     "name": "Kyverno",
@@ -235,7 +262,7 @@ http://localhost:8083/policies/default/restrict-apparmor-profiles
   },
   "code": {
     "contentType": "yaml",
-    "content": "apiVersion: kyverno.io/v1\nkind: ClusterPolicy\nmetadata:\n  annotations:\n    kyverno.io/kubernetes-version: 1.22-1.23\n    kyverno.io/kyverno-version: 1.6.0\n    meta.helm.sh/release-name: kyverno-policies\n    meta.helm.sh/release-namespace: kyverno\n    policies.kyverno.io/category: Pod Security Standards (Baseline)\n    policies.kyverno.io/description: Adding capabilities beyond those listed in the\n      policy must be disallowed.\n    policies.kyverno.io/minversion: 1.6.0\n    policies.kyverno.io/severity: medium\n    policies.kyverno.io/subject: Pod\n    policies.kyverno.io/title: Disallow Capabilities\n  labels:\n    app.kubernetes.io/component: kyverno\n    app.kubernetes.io/instance: kyverno-policies\n    app.kubernetes.io/managed-by: Helm\n    app.kubernetes.io/name: kyverno-policies\n    app.kubernetes.io/part-of: kyverno-policies\n    app.kubernetes.io/version: 3.1.0\n    helm.sh/chart: kyverno-policies-3.1.0\n  name: disallow-capabilities\nspec:\n  admission: true\n  background: true\n  failurePolicy: Fail\n  rules:\n  - match:\n      any:\n      - resources:\n          kinds:\n          - Pod\n    name: adding-capabilities\n    preconditions:\n      all:\n      - key: '{{ request.operation || ''BACKGROUND'' }}'\n        operator: NotEquals\n        value: DELETE\n    validate:\n      deny:\n        conditions:\n          all:\n          - key: '{{ request.object.spec.[ephemeralContainers, initContainers, containers][].securityContext.capabilities.add[]\n              }}'\n            operator: AnyNotIn\n            value:\n            - AUDIT_WRITE\n            - CHOWN\n            - DAC_OVERRIDE\n            - FOWNER\n            - FSETID\n            - KILL\n            - MKNOD\n            - NET_BIND_SERVICE\n            - SETFCAP\n            - SETGID\n            - SETPCAP\n            - SETUID\n            - SYS_CHROOT\n      message: Any capabilities added beyond the allowed list (AUDIT_WRITE, CHOWN,\n        DAC_OVERRIDE, FOWNER, FSETID, KILL, MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID,\n        SETPCAP, SETUID, SYS_CHROOT) are disallowed.\n  validationFailureAction: Audit\nstatus:\n  autogen:\n    rules:\n    - exclude:\n        resources: {}\n      generate:\n        clone: {}\n        cloneList: {}\n      match:\n        any:\n        - resources:\n            kinds:\n            - DaemonSet\n            - Deployment\n            - Job\n            - StatefulSet\n            - ReplicaSet\n            - ReplicationController\n        resources: {}\n      mutate: {}\n      name: autogen-adding-capabilities\n      preconditions:\n        all:\n        - key: '{{ request.operation || ''BACKGROUND'' }}'\n          operator: NotEquals\n          value: DELETE\n      validate:\n        deny:\n          conditions:\n            all:\n            - key: '{{ request.object.spec.template.spec.[ephemeralContainers, initContainers,\n                containers][].securityContext.capabilities.add[] }}'\n              operator: AnyNotIn\n              value:\n              - AUDIT_WRITE\n              - CHOWN\n              - DAC_OVERRIDE\n              - FOWNER\n              - FSETID\n              - KILL\n              - MKNOD\n              - NET_BIND_SERVICE\n              - SETFCAP\n              - SETGID\n              - SETPCAP\n              - SETUID\n              - SYS_CHROOT\n        message: Any capabilities added beyond the allowed list (AUDIT_WRITE, CHOWN,\n          DAC_OVERRIDE, FOWNER, FSETID, KILL, MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID,\n          SETPCAP, SETUID, SYS_CHROOT) are disallowed.\n    - exclude:\n        resources: {}\n      generate:\n        clone: {}\n        cloneList: {}\n      match:\n        any:\n        - resources:\n            kinds:\n            - CronJob\n        resources: {}\n      mutate: {}\n      name: autogen-cronjob-adding-capabilities\n      preconditions:\n        all:\n        - key: '{{ request.operation || ''BACKGROUND'' }}'\n          operator: NotEquals\n          value: DELETE\n      validate:\n        deny:\n          conditions:\n            all:\n            - key: '{{ request.object.spec.jobTemplate.spec.template.spec.[ephemeralContainers,\n                initContainers, containers][].securityContext.capabilities.add[] }}'\n              operator: AnyNotIn\n              value:\n              - AUDIT_WRITE\n              - CHOWN\n              - DAC_OVERRIDE\n              - FOWNER\n              - FSETID\n              - KILL\n              - MKNOD\n              - NET_BIND_SERVICE\n              - SETFCAP\n              - SETGID\n              - SETPCAP\n              - SETUID\n              - SYS_CHROOT\n        message: Any capabilities added beyond the allowed list (AUDIT_WRITE, CHOWN,\n          DAC_OVERRIDE, FOWNER, FSETID, KILL, MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID,\n          SETPCAP, SETUID, SYS_CHROOT) are disallowed.\n  conditions:\n  - lastTransitionTime: \"2024-01-11T11:44:04Z\"\n    message: Ready\n    reason: Succeeded\n    status: \"True\"\n    type: Ready\n  ready: true\n  rulecount:\n    generate: 0\n    mutate: 0\n    validate: 1\n    verifyimages: 0\n  validatingadmissionpolicy:\n    generated: false\n    message: \"\"\n"
+    "content": "apiVersion: kyverno.io/v1\nkind: ClusterPolicy\nmetadata:\n  annotations:\n    kyverno.io/kubernetes-version: 1.22-1.23\n    kyverno.io/kyverno-version: 1.6.0\n    meta.helm.sh/release-name: kyverno-policies\n    meta.helm.sh/release-namespace: kyverno\n    policies.kyverno.io/category: Pod Security Standards (Restricted)\n    policies.kyverno.io/description: Containers must be required to run as non-root\n      users. This policy ensures `runAsNonRoot` is set to `true`. A known issue prevents\n      a policy such as this using `anyPattern` from being persisted properly in Kubernetes\n      1.23.0-1.23.2.\n    policies.kyverno.io/severity: medium\n    policies.kyverno.io/subject: Pod\n    policies.kyverno.io/title: Require runAsNonRoot\n  labels:\n    app.kubernetes.io/component: kyverno\n    app.kubernetes.io/instance: kyverno-policies\n    app.kubernetes.io/managed-by: Helm\n    app.kubernetes.io/name: kyverno-policies\n    app.kubernetes.io/part-of: kyverno-policies\n    app.kubernetes.io/version: 3.1.0\n    helm.sh/chart: kyverno-policies-3.1.0\n  name: require-run-as-nonroot\nspec:\n  admission: true\n  background: true\n  failurePolicy: Fail\n  rules:\n  - match:\n      any:\n      - resources:\n          kinds:\n          - Pod\n    name: run-as-non-root\n    validate:\n      anyPattern:\n      - spec:\n          =(ephemeralContainers):\n          - =(securityContext):\n              =(runAsNonRoot): true\n          =(initContainers):\n          - =(securityContext):\n              =(runAsNonRoot): true\n          containers:\n          - =(securityContext):\n              =(runAsNonRoot): true\n          securityContext:\n            runAsNonRoot: true\n      - spec:\n          =(ephemeralContainers):\n          - securityContext:\n              runAsNonRoot: true\n          =(initContainers):\n          - securityContext:\n              runAsNonRoot: true\n          containers:\n          - securityContext:\n              runAsNonRoot: true\n      message: Running as root is not allowed. Either the field spec.securityContext.runAsNonRoot\n        must be set to `true`, or the fields spec.containers[*].securityContext.runAsNonRoot,\n        spec.initContainers[*].securityContext.runAsNonRoot, and spec.ephemeralContainers[*].securityContext.runAsNonRoot\n        must be set to `true`.\n  validationFailureAction: Audit\nstatus:\n  autogen:\n    rules:\n    - exclude:\n        resources: {}\n      generate:\n        clone: {}\n        cloneList: {}\n      match:\n        any:\n        - resources:\n            kinds:\n            - DaemonSet\n            - Deployment\n            - Job\n            - StatefulSet\n            - ReplicaSet\n            - ReplicationController\n        resources: {}\n      mutate: {}\n      name: autogen-run-as-non-root\n      validate:\n        anyPattern:\n        - spec:\n            template:\n              spec:\n                =(ephemeralContainers):\n                - =(securityContext):\n                    =(runAsNonRoot): true\n                =(initContainers):\n                - =(securityContext):\n                    =(runAsNonRoot): true\n                containers:\n                - =(securityContext):\n                    =(runAsNonRoot): true\n                securityContext:\n                  runAsNonRoot: true\n        - spec:\n            template:\n              spec:\n                =(ephemeralContainers):\n                - securityContext:\n                    runAsNonRoot: true\n                =(initContainers):\n                - securityContext:\n                    runAsNonRoot: true\n                containers:\n                - securityContext:\n                    runAsNonRoot: true\n        message: Running as root is not allowed. Either the field spec.securityContext.runAsNonRoot\n          must be set to `true`, or the fields spec.containers[*].securityContext.runAsNonRoot,\n          spec.initContainers[*].securityContext.runAsNonRoot, and spec.ephemeralContainers[*].securityContext.runAsNonRoot\n          must be set to `true`.\n    - exclude:\n        resources: {}\n      generate:\n        clone: {}\n        cloneList: {}\n      match:\n        any:\n        - resources:\n            kinds:\n            - CronJob\n        resources: {}\n      mutate: {}\n      name: autogen-cronjob-run-as-non-root\n      validate:\n        anyPattern:\n        - spec:\n            jobTemplate:\n              spec:\n                template:\n                  spec:\n                    =(ephemeralContainers):\n                    - =(securityContext):\n                        =(runAsNonRoot): true\n                    =(initContainers):\n                    - =(securityContext):\n                        =(runAsNonRoot): true\n                    containers:\n                    - =(securityContext):\n                        =(runAsNonRoot): true\n                    securityContext:\n                      runAsNonRoot: true\n        - spec:\n            jobTemplate:\n              spec:\n                template:\n                  spec:\n                    =(ephemeralContainers):\n                    - securityContext:\n                        runAsNonRoot: true\n                    =(initContainers):\n                    - securityContext:\n                        runAsNonRoot: true\n                    containers:\n                    - securityContext:\n                        runAsNonRoot: true\n        message: Running as root is not allowed. Either the field spec.securityContext.runAsNonRoot\n          must be set to `true`, or the fields spec.containers[*].securityContext.runAsNonRoot,\n          spec.initContainers[*].securityContext.runAsNonRoot, and spec.ephemeralContainers[*].securityContext.runAsNonRoot\n          must be set to `true`.\n  conditions:\n  - lastTransitionTime: \"2024-01-12T08:26:09Z\"\n    message: Ready\n    reason: Succeeded\n    status: \"True\"\n    type: Ready\n  ready: true\n  rulecount:\n    generate: 0\n    mutate: 0\n    validate: 1\n    verifyimages: 0\n  validatingadmissionpolicy:\n    generated: false\n    message: \"\"\n"
   },
   "details": [
     {
@@ -258,8 +285,10 @@ http://localhost:8083/policies/default/restrict-apparmor-profiles
 }
 ```
 
+![Kyverno Policy Details](./screens/kyverno-details.png)
+
 ## Example Client
 
 In `/example` you find an example plugin service with fixture content and a Swagger UI.
 
-![Swagger UI](./example/images/swagger.png)
+![Swagger UI](./screens/swagger.png)
