@@ -78,7 +78,7 @@ ko-build: $(KO)
 
 .PHONY: ko-login
 ko-login: $(KO)
-	@$(KO) login $(REGISTRY) --username $(REGISTRY_USERNAME) --password $(REGISTRY_PASSWORD)
+	@$(KO) login $(REGISTRY) --username "$(REGISTRY_USERNAME)" --password "$(REGISTRY_PASSWORD)"
 
 .PHONY: ko-publish
 ko-publish: ko-login

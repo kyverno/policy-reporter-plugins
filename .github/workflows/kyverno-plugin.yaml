@@ -46,7 +46,6 @@ jobs:
           name: policy-reporter/kyverno-plugin
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository_owner }}
           version: ${{ github.ref_name }}
           sbom-name: policy-reporter-kyverno-plugin
           sbom-repository: ghcr.io/${{ github.repository_owner }}/sbom
