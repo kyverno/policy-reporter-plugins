@@ -47,10 +47,13 @@ runs:
         set -e
         echo "digest=$(VERSION=${{ inputs.version }} make ko-publish)" >> $GITHUB_OUTPUT
 
-    - uses: CycloneDX/gh-gomod-generate-sbom@d4aee0cf5133055dbd98899978246c10c18c440f # v1.1.0
+    - name: Download cyclonedx-gomod
+      uses: CycloneDX/gh-gomod-generate-sbom@efc74245d6802c8cefd925620515442756c70d8f #v2.0
       with:
         version: v1
-        args: app -licenses -json -output ${{ inputs.sbom-name }}-bom.cdx.json -main ./plugins/${{ inputs.plugin }}
+    - shell: bash
+      name: Generate SBOM
+      run: cd ./plugins/${{ inputs.plugin }} && cyclonedx-gomod app -licenses -json -output ../../${{ inputs.sbom-name }}-bom.cdx.json -main .
 
     - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
       with:
