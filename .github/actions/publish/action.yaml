@@ -38,6 +38,7 @@ runs:
     - shell: bash
       id: ko-publish
       env:
+        REGISTRY_USERNAME: ${{ inputs.registry-username }}
         REGISTRY_PASSWORD: ${{ inputs.registry-password }}
         COSIGN_REPOSITORY: ${{ inputs.sbom-repository }}
         IMAGE_NAME: ${{ inputs.name }}

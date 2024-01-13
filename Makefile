@@ -81,7 +81,7 @@ ko-login: $(KO)
 	@$(KO) login $(REGISTRY) --username "$(REGISTRY_USERNAME)" --password "$(REGISTRY_PASSWORD)"
 
 .PHONY: ko-publish
-ko-publish: ko-login
+ko-publish:
 	@echo Publishing image "$(KO_TAGS)" with ko... >&2
 	@cd plugins/$(PLUGIN) && LDFLAGS='$(LD_FLAGS)' KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(REPO) \
 		$(KO) build . --bare --tags=$(KO_TAGS) --push --platform=$(PLATFORMS)
