@@ -1,4 +1,4 @@
-name: Publish trivy Plugin
+name: Publish Trivy Plugin
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-      id-token: write 
+      id-token: write
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
     steps:
@@ -38,7 +38,13 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # v3.3.0
 
-      - name: Publish Trivy Plugin
+      - name: Set version
+        run: |
+          set -e
+          TAG=${{ github.ref_name }}
+          echo "VERSION=${TAG#trivy-plugin-v}" >> $GITHUB_ENV
+
+      - name: Publish trivy Plugin
         id: publish
         uses: ./.github/actions/publish
         with:
@@ -46,13 +52,13 @@ jobs:
           name: policy-reporter/trivy-plugin
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
-          version: ${{ github.ref_name }}
+          version: ${{ env.VERSION }}
           sbom-name: trivy-plugin
           sbom-repository: ghcr.io/${{ github.repository_owner }}/sbom/policy-reporter
           signature-repository: ghcr.io/${{ github.repository_owner }}/signatures/policy-reporter
 
   generate-provenance:
-    needs: publish
+    needs: publish-images
     permissions:
       id-token: write   # To sign the provenance.
       packages: write   # To upload assets to release.
@@ -61,7 +67,7 @@ jobs:
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
     with:
       image: ghcr.io/${{ github.repository_owner }}/policy-reporter/trivy-plugin
-      digest: "${{ needs.publish.outputs.digest }}"
+      digest: "${{ needs.publish-images.outputs.digest }}"
       registry-username: ${{ github.actor }}
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
