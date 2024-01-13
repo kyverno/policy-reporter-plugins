@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-      id-token: write 
+      id-token: write
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
     steps:
@@ -47,9 +47,9 @@ jobs:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
           version: ${{ github.ref_name }}
-          sbom-name: policy-reporter-kyverno-plugin
-          sbom-repository: ghcr.io/${{ github.repository_owner }}/sbom
-          signature-repository: ghcr.io/${{ github.repository_owner }}/signatures
+          sbom-name: kyverno-plugin
+          sbom-repository: ghcr.io/${{ github.repository_owner }}/sbom/policy-reporter
+          signature-repository: ghcr.io/${{ github.repository_owner }}/signatures/policy-reporter
 
   generate-provenance:
     needs: publish-images
