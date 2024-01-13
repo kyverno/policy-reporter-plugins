@@ -151,8 +151,7 @@ networkPolicy:
   # -- A list of valid from selectors according to https://kubernetes.io/docs/concepts/services-networking/network-policies.
   # Enables Kubernetes API Server by default
   egress:
-  - to:
-    ports:
+  - ports:
     - protocol: TCP
       port: 6443
   # -- A list of valid from selectors according to https://kubernetes.io/docs/concepts/services-networking/network-policies.
