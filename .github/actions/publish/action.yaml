@@ -61,7 +61,6 @@ runs:
         path: ${{ inputs.sbom-name }}-bom.cdx.json
 
     - shell: bash
-      if: ${{ inputs.sign-image == 'true' }}
       env:
         COSIGN_REPOSITORY: ${{ inputs.signature-repository }}
       run: |
