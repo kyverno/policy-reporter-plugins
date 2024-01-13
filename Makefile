@@ -73,8 +73,8 @@ fmt: gci gofumpt
 .PHONY: ko-build
 ko-build: $(KO)
 	@echo Build image with ko... >&2
-	@LDFLAGS='$(LD_FLAGS)' KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(KO_REGISTRY) \
-		$(KO) build ./plugins/$(PLUGIN) --tags=$(KO_TAGS) --platform=$(LOCAL_PLATFORM)
+	@cd plugins/$(PLUGIN) && LDFLAGS='$(LD_FLAGS)' KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(KO_REGISTRY) \
+		$(KO) build . --tags=$(KO_TAGS) --platform=$(LOCAL_PLATFORM)
 
 .PHONY: ko-login
 ko-login: $(KO)
@@ -83,5 +83,5 @@ ko-login: $(KO)
 .PHONY: ko-publish
 ko-publish: ko-login
 	@echo Publishing image "$(KO_TAGS)" with ko... >&2
-	@LDFLAGS='$(LD_FLAGS)' KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(REPO) \
-		$(KO) build ./plugins/$(PLUGIN) --bare --tags=$(KO_TAGS) --push --platform=$(PLATFORMS)
+	@cd plugins/$(PLUGIN) && LDFLAGS='$(LD_FLAGS)' KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(REPO) \
+		$(KO) build . --bare --tags=$(KO_TAGS) --push --platform=$(PLATFORMS)
