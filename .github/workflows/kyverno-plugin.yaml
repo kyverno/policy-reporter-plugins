@@ -53,7 +53,7 @@ jobs:
           signature-repository: ghcr.io/${{ github.repository_owner }}/signatures
 
   generate-provenance:
-    needs: publish
+    needs: publish-images
     permissions:
       id-token: write   # To sign the provenance.
       packages: write   # To upload assets to release.
