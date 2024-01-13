@@ -108,6 +108,7 @@ func newRunCMD() *cobra.Command {
 	clientcmd.BindOverrideFlags(&c.KubeConfig, cmd.Flags(), clientcmd.RecommendedConfigOverrideFlags("kube-"))
 
 	cmd.Flags().StringVarP(&configFile, "config", "c", "", "target configuration file")
+	cmd.Flags().StringVar(&c.LeaderElection.LockName, "lease-name", "kyverno-plugin", "name of the LeaseLock")
 	cmd.Flags().IntVar(&c.Server.Port, "port", 8080, "Kyverno Plugin server port")
 	cmd.Flags().BoolVar(&c.Local, "local", false, "use kube config to connect to cluster")
 	flag.Parse()

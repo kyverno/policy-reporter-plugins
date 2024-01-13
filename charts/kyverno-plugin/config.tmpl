@@ -1,0 +1,23 @@
+leaderElection:
+  enabled: {{ or .Values.leaderElection.enabled (gt (int .Values.replicaCount) 1) }}
+  releaseOnCancel: {{ .Values.leaderElection.releaseOnCancel }}
+  leaseDuration: {{ .Values.leaderElection.leaseDuration }}
+  renewDeadline: {{ .Values.leaderElection.renewDeadline }}
+  retryPeriod: {{ .Values.leaderElection.retryPeriod }}
+  lockName: {{ .Values.leaderElection.lockName }}
+
+logging:
+  encoding: {{ .Values.app.logging.encoding }}
+  logLevel: {{ .Values.app.logging.logLevel }}
+
+server:
+  logging: {{ .Values.app.server.logging }}
+  basicAuth:
+    username: {{ .Values.app.server.basicAuth.username }}
+    password: {{ .Values.app.server.basicAuth.password }}
+    secretRef: {{ .Values.app.server.basicAuth.secretRef }}
+
+{{- with .Values.app.blockReports }}
+blockReports:
+  {{- toYaml . | nindent 4 }}
+{{- end }}
