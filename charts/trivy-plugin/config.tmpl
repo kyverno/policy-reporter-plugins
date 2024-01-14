@@ -10,7 +10,7 @@ server:
     secretRef: {{ .Values.server.basicAuth.secretRef }}
 
 core:
-  host: {{ tpl .Values.policyReporter.host }}
+  host: {{ tpl .Values.policyReporter.host . }}
   skipTLS: {{ .Values.policyReporter.skipTLS }}
   certificate: {{ .Values.policyReporter.certificate }}
   secretRef: {{ .Values.policyReporter.secretRef }}
