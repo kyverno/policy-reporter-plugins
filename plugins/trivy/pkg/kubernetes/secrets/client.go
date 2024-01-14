@@ -11,7 +11,7 @@ import (
 )
 
 type Values struct {
-	Host        string `json:"api" mapstructure:"api"`
+	Host        string `json:"host" mapstructure:"api"`
 	Certificate string `json:"certificate" mapstructure:"certificate"`
 	SkipTLS     bool   `json:"skipTLS" mapstructure:"skipTLS"`
 	Username    string `json:"username" mapstructure:"username"`

@@ -19,28 +19,6 @@ type Server struct {
 	BasicAuth BasicAuth `mapstructure:"basicAuth"`
 }
 
-type Results struct {
-	MaxPerReport   int  `mapstructure:"maxPerReport"`
-	KeepOnlyLatest bool `mapstructure:"keepOnlyLatest"`
-}
-
-type LeaderElection struct {
-	LockName        string `mapstructure:"lockName"`
-	PodName         string `mapstructure:"podName"`
-	LeaseDuration   int    `mapstructure:"leaseDuration"`
-	RenewDeadline   int    `mapstructure:"renewDeadline"`
-	RetryPeriod     int    `mapstructure:"retryPeriod"`
-	ReleaseOnCancel bool   `mapstructure:"releaseOnCancel"`
-	Enabled         bool   `mapstructure:"enabled"`
-}
-
-type BlockReports struct {
-	Enabled        bool    `mapstructure:"enabled"`
-	Results        Results `mapstructure:"results"`
-	Source         string  `mapstructure:"source"`
-	EventNamespace string  `mapstructure:"eventNamespace"`
-}
-
 type CoreAPI struct {
 	Host        string    `mapstructure:"host"`
 	SkipTLS     bool      `mapstructure:"skipTLS"`
@@ -70,12 +48,10 @@ func (a CoreAPI) FromValues(values secrets.Values) CoreAPI {
 }
 
 type Config struct {
-	KubeConfig     clientcmd.ConfigOverrides
-	Namespace      string         `mapstructure:"namespace"`
-	Logging        logging.Config `mapstructure:"logging"`
-	Server         Server         `mapstructure:"server"`
-	Local          bool           `mapstructure:"local"`
-	BlockReports   BlockReports   `mapstructure:"blockReports"`
-	LeaderElection LeaderElection `mapstructure:"leaderElection"`
-	CoreAPI        CoreAPI        `mapstructure:"core"`
+	KubeConfig clientcmd.ConfigOverrides
+	Namespace  string         `mapstructure:"namespace"`
+	Logging    logging.Config `mapstructure:"logging"`
+	Server     Server         `mapstructure:"server"`
+	Local      bool           `mapstructure:"local"`
+	CoreAPI    CoreAPI        `mapstructure:"core"`
 }

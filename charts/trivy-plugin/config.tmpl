@@ -1,0 +1,20 @@
+logging:
+  encoding: {{ .Values.logging.encoding }}
+  logLevel: {{ .Values.logging.logLevel }}
+
+server:
+  logging: {{ .Values.server.logging }}
+  basicAuth:
+    username: {{ .Values.server.basicAuth.username }}
+    password: {{ .Values.server.basicAuth.password }}
+    secretRef: {{ .Values.server.basicAuth.secretRef }}
+
+core:
+  host: {{ .Values.policyReporter.host }}
+  skipTLS: {{ .Values.policyReporter.skipTLS }}
+  certificate: {{ .Values.policyReporter.certificate }}
+  secretRef: {{ .Values.policyReporter.secretRef }}
+  basicAuth:
+    username: {{ .Values.policyReporter.basicAuth.username }}
+    password: {{ .Values.policyReporter.basicAuth.password }}
+

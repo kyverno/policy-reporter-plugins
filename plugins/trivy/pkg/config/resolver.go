@@ -151,30 +151,6 @@ func (r *Resolver) Server(ctx context.Context, options []server.ServerOption) (*
 	return serv, nil
 }
 
-func (r *Resolver) LeaderElectionClient() (*leaderelection.Client, error) {
-	if r.leaderClient != nil {
-		return r.leaderClient, nil
-	}
-
-	clientset, err := r.Clientset()
-	if err != nil {
-		return nil, err
-	}
-
-	r.leaderClient = leaderelection.New(
-		clientset.CoordinationV1(),
-		r.config.LeaderElection.LockName,
-		r.config.Namespace,
-		r.config.LeaderElection.PodName,
-		time.Duration(r.config.LeaderElection.LeaseDuration)*time.Second,
-		time.Duration(r.config.LeaderElection.RenewDeadline)*time.Second,
-		time.Duration(r.config.LeaderElection.RetryPeriod)*time.Second,
-		r.config.LeaderElection.ReleaseOnCancel,
-	)
-
-	return r.leaderClient, nil
-}
-
 func (r *Resolver) LoadBasicAuth(ctx context.Context, secretRef string) (*BasicAuth, error) {
 	values, err := r.SecretClient().Get(ctx, secretRef)
 	if err != nil {
@@ -245,7 +221,7 @@ func (r *Resolver) VulnrService() (*vulnr.Service, error) {
 		return nil, err
 	}
 
-	return vulnr.New(cve, r.GHClient(), gocache.New(gocache.NoExpiration, gocache.NoExpiration)), nil
+	return vulnr.New(cve, r.GHClient(), gocache.New(24*time.Hour, 1*time.Hour)), nil
 }
 
 func NewResolver(config *Config) Resolver {

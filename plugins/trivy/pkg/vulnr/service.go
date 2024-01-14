@@ -44,7 +44,7 @@ func (s *Service) Get(ctx context.Context, name string) (*Vulnerability, error) 
 		details = MapCVE(cve, trivyCVE)
 	}
 
-	s.cache.Set(name, details, gocache.NoExpiration)
+	s.cache.Set(name, details, gocache.DefaultExpiration)
 
 	return details, nil
 }
