@@ -17,7 +17,7 @@ rules:
   verbs:
   - get
   - list
-{{- if .Values.app.blockReports.enabled }}
+{{- if .Values.blockReports.enabled }}
 - apiGroups:
   - ""
   resources:

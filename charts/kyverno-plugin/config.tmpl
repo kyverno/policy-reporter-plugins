@@ -7,17 +7,17 @@ leaderElection:
   lockName: {{ .Values.leaderElection.lockName }}
 
 logging:
-  encoding: {{ .Values.app.logging.encoding }}
-  logLevel: {{ .Values.app.logging.logLevel }}
+  encoding: {{ .Values.logging.encoding }}
+  logLevel: {{ .Values.logging.logLevel }}
 
 server:
-  logging: {{ .Values.app.server.logging }}
+  logging: {{ .Values.server.logging }}
   basicAuth:
-    username: {{ .Values.app.server.basicAuth.username }}
-    password: {{ .Values.app.server.basicAuth.password }}
-    secretRef: {{ .Values.app.server.basicAuth.secretRef }}
+    username: {{ .Values.server.basicAuth.username }}
+    password: {{ .Values.server.basicAuth.password }}
+    secretRef: {{ .Values.server.basicAuth.secretRef }}
 
-{{- with .Values.app.blockReports }}
+{{- with .Values.blockReports }}
 blockReports:
   {{- toYaml . | nindent 4 }}
 {{- end }}

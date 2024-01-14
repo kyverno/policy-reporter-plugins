@@ -12,26 +12,22 @@ You can find detailed Information and Screens about Features and Configurations 
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| replicaCount | int | `1` |  |
-| app.logging | object | `{"encoding":"console","logLevel":0}` | App logging configuration |
-| app.logging.encoding | string | `"console"` | log encoding possible encodings are console and json |
-| app.logging.logLevel | int | `0` | log level default info |
-| app.server | object | `{"basicAuth":{"password":"","secretRef":"","username":""},"logging":false,"port":8080}` | App server configuration |
-| app.server.port | int | `8080` | Application port |
-| app.server.logging | bool | `false` | Enables Access logging |
-| app.server.basicAuth | object | `{"password":"","secretRef":"","username":""}` | Enables HTTP Basic Authentication |
-| app.server.basicAuth.username | string | `""` | HTTP BasicAuth username |
-| app.server.basicAuth.password | string | `""` | HTTP BasicAuth password |
-| app.server.basicAuth.secretRef | string | `""` | Read credentials from secret |
-| app.blockReports | object | `{"enabled":false,"eventNamespace":"default","results":{"keepOnlyLatest":false,"maxPerReport":200}}` | BlockRepoort Feature configuration |
-| app.blockReports.enabled | bool | `false` | Enables he BlockReport feature |
-| app.blockReports.eventNamespace | string | `"default"` | Watches for Kyverno Events in the configured namespace leave blank to watch in all namespaces |
-| app.blockReports.results.maxPerReport | int | `200` | Max items per PolicyReport resource |
-| app.blockReports.results.keepOnlyLatest | bool | `false` | Keep only the latest of duplicated events |
 | image.registry | string | `"ghcr.io"` | Image registry |
 | image.repository | string | `"kyverno/policy-reporter/kyverno-plugin"` | Image repository |
 | image.pullPolicy | string | `"IfNotPresent"` | Image PullPolicy |
 | image.tag | string | `""` | Image tag Defaults to `Chart.AppVersion` if omitted |
+| replicaCount | int | `1` | Deployment replica count |
+| logging.encoding | string | `"console"` | log encoding possible encodings are console and json |
+| logging.logLevel | int | `0` | log level default info |
+| server.port | int | `8080` | Application port |
+| server.logging | bool | `false` | Enables Access logging |
+| server.basicAuth.username | string | `""` | HTTP BasicAuth username |
+| server.basicAuth.password | string | `""` | HTTP BasicAuth password |
+| server.basicAuth.secretRef | string | `""` | Read HTTP BasicAuth credentials from secret |
+| blockReports.enabled | bool | `false` | Enables he BlockReport feature |
+| blockReports.eventNamespace | string | `"default"` | Watches for Kyverno Events in the configured namespace leave blank to watch in all namespaces |
+| blockReports.results.maxPerReport | int | `200` | Max items per PolicyReport resource |
+| blockReports.results.keepOnlyLatest | bool | `false` | Keep only the latest of duplicated events |
 | imagePullSecrets | list | `[]` | Image pull secrets for image verification policies, this will define the `--imagePullSecrets` argument |
 | nameOverride | string | `""` | Override the name of the chart |
 | fullnameOverride | string | `""` | Override the expanded name of the chart |

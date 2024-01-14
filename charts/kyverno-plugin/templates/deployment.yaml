@@ -43,10 +43,10 @@ spec:
           args:
             - run
             - --config=/app/config.yaml
-            - --port={{ .Values.app.server.port }}
+            - --port={{ .Values.server.port }}
           ports:
             - name: http
-              containerPort: {{ .Values.app.server.port }}
+              containerPort: {{ .Values.server.port }}
               protocol: TCP
           livenessProbe:
             httpGet:

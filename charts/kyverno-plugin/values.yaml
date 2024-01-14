@@ -1,41 +1,3 @@
-replicaCount: 1
-
-app:
-  # -- App logging configuration
-  logging:
-    # -- log encoding
-    # possible encodings are console and json
-    encoding: console
-    # -- log level
-    # default info
-    logLevel: 0
-  # -- App server configuration
-  server:
-    # -- Application port
-    port: 8080
-    # -- Enables Access logging
-    logging: false
-    # -- Enables HTTP Basic Authentication
-    basicAuth:
-      # -- HTTP BasicAuth username
-      username: ""
-      # -- HTTP BasicAuth password
-      password: ""
-      # -- Read credentials from secret
-      secretRef: ""
-  # -- BlockRepoort Feature configuration
-  blockReports:
-    # -- Enables he BlockReport feature
-    enabled: false
-    # -- Watches for Kyverno Events in the configured namespace
-    # leave blank to watch in all namespaces
-    eventNamespace: default
-    results:
-      # -- Max items per PolicyReport resource
-      maxPerReport: 200
-      # -- Keep only the latest of duplicated events
-      keepOnlyLatest: false
-
 image:
     # -- (string) Image registry
   registry: ghcr.io
@@ -46,6 +8,42 @@ image:
     # -- (string) Image tag
     # Defaults to `Chart.AppVersion` if omitted
   tag: ""
+
+# -- Deployment replica count
+replicaCount: 1
+
+logging:
+  # -- log encoding
+  # possible encodings are console and json
+  encoding: console
+  # -- log level
+  # default info
+  logLevel: 0
+
+server:
+  # -- Application port
+  port: 8080
+  # -- Enables Access logging
+  logging: false
+  basicAuth:
+    # -- HTTP BasicAuth username
+    username: ""
+    # -- HTTP BasicAuth password
+    password: ""
+    # -- Read HTTP BasicAuth credentials from secret
+    secretRef: ""
+
+blockReports:
+  # -- Enables he BlockReport feature
+  enabled: false
+  # -- Watches for Kyverno Events in the configured namespace
+  # leave blank to watch in all namespaces
+  eventNamespace: default
+  results:
+    # -- Max items per PolicyReport resource
+    maxPerReport: 200
+    # -- Keep only the latest of duplicated events
+    keepOnlyLatest: false
 
 # -- Image pull secrets for image verification policies, this will define the `--imagePullSecrets` argument
 imagePullSecrets: []
