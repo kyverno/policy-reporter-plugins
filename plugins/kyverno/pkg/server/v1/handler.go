@@ -1,4 +1,4 @@
-package server
+package v1
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/core"
 	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/kyverno"
+	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/server"
 )
 
 type APIHandler struct {
@@ -18,8 +19,8 @@ type APIHandler struct {
 }
 
 func (h *APIHandler) Register(engine *gin.RouterGroup) error {
-	engine.GET("policies", h.List)
-	engine.GET("policies/*policy", h.Get)
+	engine.GET("v1/policies", h.List)
+	engine.GET("v1/policies/*policy", h.Get)
 
 	return nil
 }
@@ -54,8 +55,8 @@ func NewHandler(client kyverno.Client, coreAPI *core.Client) *APIHandler {
 	return &APIHandler{client, coreAPI}
 }
 
-func WithAPI(client kyverno.Client, coreAPI *core.Client) ServerOption {
-	return func(s *Server) error {
+func WithAPI(client kyverno.Client, coreAPI *core.Client) server.ServerOption {
+	return func(s *server.Server) error {
 		return s.Register("api", NewHandler(client, coreAPI))
 	}
 }

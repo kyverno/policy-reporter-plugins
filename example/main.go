@@ -12,21 +12,21 @@ import (
 	_ "github.com/kyverno/policy-reporter-plugins/example/docs"
 )
 
-// @title           Policy Reporter UI Plugin Example API
-// @version         0.0.1
-// @description     This is an example API for the Policy Reporter UI Plugin Interface.
+//	@title			Policy Reporter UI Plugin Example API
+//	@version		0.0.1
+//	@description	This is an example API for the Policy Reporter UI Plugin Interface.
 
-// @contact.name   Frank Jogeleit
-// @contact.email  frank.jogeleit@web.de
+//	@contact.name	Frank Jogeleit
+//	@contact.email	frank.jogeleit@web.de
 
-// @host      localhost:8080
-// @BasePath  /api
+//	@host		localhost:8080
+//	@BasePath	/api
 func main() {
 	client := api.NewClient()
 
 	r := gin.Default()
 
-	g := r.Group("api")
+	g := r.Group("api/v1")
 
 	g.GET("policies", func(ctx *gin.Context) {
 		policies, err := client.GetPolicies(ctx)

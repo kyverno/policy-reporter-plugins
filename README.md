@@ -20,9 +20,9 @@ The new Trivy Plugin provides details about results comming from VulnerabilityRe
 
 One Plugin relates to one "source" of PolicyReports.
 
-### [GET] Policies API
+### [GET] V1 Policies API
 
-The `/policies` API provides a list of Policies. This could be a list of all policies or a list of all policies which produced a __PolicyReportResult__.
+The `/v1/policies` API provides a list of Policies. This could be a list of all policies or a list of all policies which produced a __PolicyReportResult__.
 
 #### Trivy Plugin
 
@@ -112,9 +112,9 @@ The `/policies` API provides a list of Policies. This could be a list of all pol
 
 ![Kyverno Policy List](./screens/kyverno-list.png)
 
-### [GET] Policy API
+### [GET] V1 Policy API
 
-The `/policies/{name}` API provides details of a single policy selected by its unique name.
+The `/v1/policies/{name}` API provides details of a single policy selected by its unique name.
 
 Examples:
 

@@ -18,7 +18,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/policies": {
+        "/v1/policies": {
             "get": {
                 "description": "list all available policies",
                 "produces": [
@@ -44,7 +44,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/policies/{name}": {
+        "/v1/policies/{name}": {
             "get": {
                 "description": "get policy details by unique name, try \"disallow-capabilities\", \"CVE-2022-41723\" or \"min\"",
                 "produces": [

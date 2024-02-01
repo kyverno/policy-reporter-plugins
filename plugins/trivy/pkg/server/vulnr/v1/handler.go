@@ -1,4 +1,4 @@
-package vulnr
+package v1
 
 import (
 	"fmt"
@@ -25,8 +25,8 @@ type APIHandler struct {
 }
 
 func (h *APIHandler) Register(engine *gin.RouterGroup) error {
-	engine.GET("policies", h.List)
-	engine.GET("policies/*policy", h.Get)
+	engine.GET("v1/policies", h.List)
+	engine.GET("v1/policies/*policy", h.Get)
 
 	return nil
 }

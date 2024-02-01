@@ -1,4 +1,4 @@
-package vulnr
+package v1
 
 import (
 	"github.com/kyverno/policy-reporter-plugins/sdk/api"

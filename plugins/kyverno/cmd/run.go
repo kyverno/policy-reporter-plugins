@@ -10,6 +10,7 @@ import (
 
 	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/config"
 	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/server"
+	v1 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/server/v1"
 	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/violation"
 )
 
@@ -41,7 +42,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			server, err := resolver.Server(cmd.Context(), []server.ServerOption{
-				server.WithAPI(client, coreAPI),
+				v1.WithAPI(client, coreAPI),
 				server.WithPort(c.Server.Port),
 			})
 			if err != nil {

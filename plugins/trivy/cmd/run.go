@@ -9,7 +9,7 @@ import (
 
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/config"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/server"
-	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/server/vulnr"
+	v1 "github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/server/vulnr/v1"
 )
 
 var configFile string
@@ -40,7 +40,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			server, err := resolver.Server(cmd.Context(), []server.ServerOption{
-				vulnr.WithAPI(coreAPI, service),
+				v1.WithAPI(coreAPI, service),
 				server.WithPort(c.Server.Port),
 			})
 			if err != nil {
