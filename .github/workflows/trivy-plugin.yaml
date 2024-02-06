@@ -24,8 +24,8 @@ jobs:
       
       - uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3.5.0
         with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
+          go-version-file: plugins/trivy/go.mod
+          cache-dependency-path: plugins/trivy/go.sum
 
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@d43c1f16c00cfd3978dde6c07f4bbcf9eb6993ca # v0.16.1
