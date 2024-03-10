@@ -68,11 +68,11 @@ Install the Policy Reporter Preview
 ### With Kyverno (Kyverno Plugin enabled)
 
 ```bash
-helm upgrade --install policy-reporter policy-reporter/policy-reporter-preview --create-namespace -n policy-reporter --devel --set ui.enabled=true --set trivy-plugin.enabled=true --set kyverno-plugin.enabled=true
+helm upgrade --install policy-reporter policy-reporter/policy-reporter-preview --create-namespace -n policy-reporter --devel --set ui.enabled=true --set plugin.trivy.enabled=true --set plugin.kyverno.enabled=true
 ```
 
 ### Without Kyverno
 
 ```bash
-helm upgrade --install policy-reporter policy-reporter/policy-reporter-preview --create-namespace -n policy-reporter --devel --set ui.enabled=true --set trivy-plugin.enabled=true
+helm upgrade --install policy-reporter policy-reporter/policy-reporter-preview --create-namespace -n policy-reporter --devel --set ui.enabled=true --set plugin.trivy.enabled=true
 ```
