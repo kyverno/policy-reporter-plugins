@@ -28,7 +28,7 @@ import (
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
 
-	v1alpha2 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/api/policyreport/v1alpha2"
+	v1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policyreport/v1alpha2"
 )
 
 // FakePolicyReports implements PolicyReportInterface

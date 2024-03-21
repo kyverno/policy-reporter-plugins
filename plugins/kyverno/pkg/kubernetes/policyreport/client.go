@@ -8,9 +8,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/api/policyreport/v1alpha2"
-	pr "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/violation"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policyreport/v1alpha2"
+	pr "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
 
 var reportLabels = map[string]string{

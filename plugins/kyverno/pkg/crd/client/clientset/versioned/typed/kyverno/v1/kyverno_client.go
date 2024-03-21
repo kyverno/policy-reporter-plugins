@@ -23,8 +23,8 @@ import (
 
 	rest "k8s.io/client-go/rest"
 
-	v1 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/api/kyverno/v1"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/client/clientset/versioned/scheme"
+	v1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
 )
 
 type KyvernoV1Interface interface {

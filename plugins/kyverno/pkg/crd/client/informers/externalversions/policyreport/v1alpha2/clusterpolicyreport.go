@@ -27,10 +27,10 @@ import (
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
 
-	policyreportv1alpha2 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/api/policyreport/v1alpha2"
-	versioned "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/client/clientset/versioned"
-	internalinterfaces "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/client/informers/externalversions/internalinterfaces"
-	v1alpha2 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/client/listers/policyreport/v1alpha2"
+	policyreportv1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policyreport/v1alpha2"
+	versioned "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned"
+	internalinterfaces "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/internalinterfaces"
+	v1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/listers/policyreport/v1alpha2"
 )
 
 // ClusterPolicyReportInformer provides access to a shared informer and lister for

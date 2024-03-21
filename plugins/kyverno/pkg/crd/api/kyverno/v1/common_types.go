@@ -1,6 +1,8 @@
 package v1
 
 import (
+	admissionv1 "k8s.io/api/admission/v1"
+	"k8s.io/api/admissionregistration/v1alpha1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -512,3 +514,38 @@ type ObjectFieldBinding struct {
 	Fields  []string            `json:"fields,omitempty"`
 	Objects ObjectReferenceList `json:"objects,omitempty"`
 }
+
+// CEL allows validation checks using the Common Expression Language (https://kubernetes.io/docs/reference/using-api/cel/).
+type CEL struct {
+	// Expressions is a list of CELExpression types.
+	Expressions []v1alpha1.Validation `json:"expressions,omitempty" yaml:"expressions,omitempty"`
+
+	// ParamKind is a tuple of Group Kind and Version.
+	// +optional
+	ParamKind *v1alpha1.ParamKind `json:"paramKind,omitempty" yaml:"paramKind,omitempty"`
+
+	// ParamRef references a parameter resource.
+	// +optional
+	ParamRef *v1alpha1.ParamRef `json:"paramRef,omitempty" yaml:"paramRef,omitempty"`
+
+	// AuditAnnotations contains CEL expressions which are used to produce audit annotations for the audit event of the API request.
+	// +optional
+	AuditAnnotations []v1alpha1.AuditAnnotation `json:"auditAnnotations,omitempty" yaml:"auditAnnotations,omitempty"`
+
+	// Variables contain definitions of variables that can be used in composition of other expressions.
+	// Each variable is defined as a named CEL expression.
+	// The variables defined here will be available under `variables` in other expressions of the policy.
+	// +optional
+	Variables []v1alpha1.Variable `json:"variables,omitempty" yaml:"variables,omitempty"`
+}
+
+// AdmissionOperation can have one of the values CREATE, UPDATE, CONNECT, DELETE, which are used to match a specific action.
+// +kubebuilder:validation:Enum=CREATE;CONNECT;UPDATE;DELETE
+type AdmissionOperation admissionv1.Operation
+
+const (
+	Create  AdmissionOperation = AdmissionOperation(admissionv1.Create)
+	Update  AdmissionOperation = AdmissionOperation(admissionv1.Update)
+	Delete  AdmissionOperation = AdmissionOperation(admissionv1.Delete)
+	Connect AdmissionOperation = AdmissionOperation(admissionv1.Connect)
+)

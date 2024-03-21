@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/secrets"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/secrets"
 )
 
 const secretName = "secret-values"

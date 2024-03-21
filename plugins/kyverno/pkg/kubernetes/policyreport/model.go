@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/violation"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
 
 const (

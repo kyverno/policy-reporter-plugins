@@ -1,16 +1,28 @@
 package v1
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/itchyny/json2yaml"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/core"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/kyverno"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/server"
+	"github.com/kyverno/policy-reporter-plugins/sdk/api"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
+	v1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/utils"
+)
+
+var (
+	ControllerKinds = []string{"Deployment", "DaemonSet", "StatefulSet", "CronJob", "Job"}
 )
 
 type APIHandler struct {
@@ -21,6 +33,7 @@ type APIHandler struct {
 func (h *APIHandler) Register(engine *gin.RouterGroup) error {
 	engine.GET("v1/policies", h.List)
 	engine.GET("v1/policies/*policy", h.Get)
+	engine.POST("v1/policies/exception", h.Exception)
 
 	return nil
 }
@@ -49,6 +62,90 @@ func (h *APIHandler) Get(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, details)
+}
+
+func (h *APIHandler) Exception(ctx *gin.Context) {
+	request := &api.ExceptionRequest{}
+
+	if err := ctx.BindJSON(request); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if len(request.Policy.Rules) == 0 {
+		name, namespace := utils.SplitPolicyName(request.Policy.Name)
+
+		policy, err := h.client.GetCRD(ctx, name, namespace)
+		if err != nil {
+			ctx.AbortWithError(http.StatusNotFound, err)
+		}
+
+		var rules []string
+
+		if policy.GetSpec() != nil {
+			rules = utils.Map(policy.GetSpec().Rules, func(rule v1.Rule) string {
+				return rule.Name
+			})
+		}
+
+		if policy.GetStatus() != nil {
+			rules = append(rules, utils.Map(policy.GetStatus().Autogen.Rules, func(rule v1.Rule) string {
+				return rule.Name
+			})...)
+		}
+
+		request.Policy.Rules = rules
+	}
+
+	kinds := []string{request.Resource.Kind}
+	if utils.Contains(ControllerKinds, request.Resource.Kind) {
+		kinds = append(kinds, "Pod")
+	}
+
+	if request.Resource.Kind == "CronJob" {
+		kinds = append(kinds, "Job")
+	}
+
+	exception := v2beta1.PolicyException{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "PolicyException",
+			APIVersion: "kyverno.io/v2beta1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-exception", request.Resource.Name),
+			Namespace: request.Resource.Namespace,
+		},
+		Spec: v2beta1.PolicyExceptionSpec{
+			Exceptions: []v2beta1.Exception{
+				{
+					PolicyName: request.Policy.Name,
+					RuleNames:  request.Policy.Rules,
+				},
+			},
+			Match: v2beta1.MatchResources{
+				Any: []v1.ResourceFilter{
+					{
+						ResourceDescription: v1.ResourceDescription{
+							Kinds:      kinds,
+							Namespaces: []string{request.Resource.Namespace},
+							Names:      []string{fmt.Sprintf("%s*", request.Resource.Name)},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	data, _ := json.Marshal(exception)
+
+	var output bytes.Buffer
+
+	if err := json2yaml.Convert(&output, bytes.NewReader(data)); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	ctx.Data(http.StatusOK, "application/yaml; charset=utf-8", output.Bytes())
 }
 
 func NewHandler(client kyverno.Client, coreAPI *core.Client) *APIHandler {

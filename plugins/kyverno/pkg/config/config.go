@@ -3,8 +3,8 @@ package config
 import (
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/secrets"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/logging"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/secrets"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/logging"
 )
 
 type BasicAuth struct {

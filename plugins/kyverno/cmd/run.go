@@ -8,10 +8,10 @@ import (
 	"go.uber.org/zap"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/config"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/server"
-	v1 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/server/v1"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/violation"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/config"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server"
+	v1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server/v1"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
 
 var configFile string

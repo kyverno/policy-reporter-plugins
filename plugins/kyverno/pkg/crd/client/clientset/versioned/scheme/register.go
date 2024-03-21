@@ -25,8 +25,8 @@ import (
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 
-	kyvernov1 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/api/kyverno/v1"
-	wgpolicyk8sv1alpha2 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/api/policyreport/v1alpha2"
+	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
+	wgpolicyk8sv1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policyreport/v1alpha2"
 )
 
 var Scheme = runtime.NewScheme()

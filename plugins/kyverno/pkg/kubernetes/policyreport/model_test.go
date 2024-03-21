@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/policyreport"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/policyreport"
 )
 
 func Test_GeneratePolicyReportName(t *testing.T) {

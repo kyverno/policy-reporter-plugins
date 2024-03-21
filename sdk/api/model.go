@@ -5,6 +5,7 @@ import "context"
 type Client interface {
 	GetPolicies(ctx context.Context) ([]PolicyListItem, error)
 	GetPolicy(ctx context.Context, name string) (*Policy, error)
+	CreateException(ctx context.Context, request ExceptionRequest) (*ExceptionResponse, error)
 }
 
 type PolicyListItem struct {
@@ -53,4 +54,23 @@ type Policy struct {
 	References  []Reference   `json:"references,omitempty"`
 	Details     []DetailsItem `json:"details,omitempty"`
 	Additional  []Details     `json:"additional,omitempty"`
+}
+
+type Resource struct {
+	APIVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Name       string `json:"name"`
+	Namespace  string `json:"namespace"`
+}
+
+type ExceptionRequest struct {
+	Resource Resource `json:"resource"`
+	Policy   struct {
+		Name  string   `json:"name"`
+		Rules []string `json:"rules"`
+	} `json:"policy"`
+}
+
+type ExceptionResponse struct {
+	Resource string `json:"resource,omitempty"`
 }

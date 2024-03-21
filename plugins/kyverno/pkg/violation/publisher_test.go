@@ -3,7 +3,7 @@ package violation_test
 import (
 	"testing"
 
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/violation"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
 
 func Test_PublishPolicyViolation(t *testing.T) {

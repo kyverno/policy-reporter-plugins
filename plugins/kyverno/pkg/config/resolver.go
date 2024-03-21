@@ -12,17 +12,17 @@ import (
 	"k8s.io/client-go/metadata"
 	"k8s.io/client-go/rest"
 
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/core"
-	kyvernov1 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/client/clientset/versioned/typed/kyverno/v1"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/events"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/kyverno"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/leaderelection"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/policyreport"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/secrets"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/logging"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/server"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/violation"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
+	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v1"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/events"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/leaderelection"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/policyreport"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/secrets"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/logging"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
 
 type Resolver struct {

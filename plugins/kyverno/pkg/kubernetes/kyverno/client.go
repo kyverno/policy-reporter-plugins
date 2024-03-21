@@ -14,11 +14,11 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/metadata"
 
-	apiV1 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/api/kyverno/v1"
-	kyvernoTypes "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/api/kyverno/v1"
-	kyvernoV1 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/client/clientset/versioned/typed/kyverno/v1"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/utils"
+	apiV1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
+	kyvernoTypes "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
+	kyvernoV1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v1"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/utils"
 )
 
 var (
@@ -39,7 +39,8 @@ const (
 )
 
 type Client interface {
-	sdk.Client
+	GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error)
+	GetPolicy(ctx context.Context, name string) (*sdk.Policy, error)
 	GetCRD(ctx context.Context, name, namespace string) (kyvernoTypes.PolicyInterface, error)
 }
 

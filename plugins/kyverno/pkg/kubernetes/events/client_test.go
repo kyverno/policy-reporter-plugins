@@ -14,10 +14,10 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	eventsv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	kyvernov1 "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/crd/api/kyverno/v1"
-	kubernetes "github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/events"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/kubernetes/kyverno"
-	"github.com/kyverno/policy-reporter-plugins/plugins/kyverno/pkg/violation"
+	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
+	kubernetes "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/events"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
 
 var (
