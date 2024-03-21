@@ -1,3 +1,3 @@
 module github.com/kyverno/policy-reporter-plugins/sdk/api
 
-go 1.21.3
+go 1.22
