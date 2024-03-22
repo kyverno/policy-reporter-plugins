@@ -9,6 +9,7 @@ require (
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-contrib/zap v1.1.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/itchyny/json2yaml v0.1.4
 	github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/segmentio/fasthash v1.0.3
@@ -53,7 +54,6 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/itchyny/json2yaml v0.1.4 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
