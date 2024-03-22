@@ -63,12 +63,14 @@ type Resource struct {
 	Namespace  string `json:"namespace"`
 }
 
+type PolicyInfo struct {
+	Name  string   `json:"name"`
+	Rules []string `json:"rules"`
+}
+
 type ExceptionRequest struct {
-	Resource Resource `json:"resource"`
-	Policy   struct {
-		Name  string   `json:"name"`
-		Rules []string `json:"rules"`
-	} `json:"policy"`
+	Resource Resource   `json:"resource"`
+	Policy   PolicyInfo `json:"policy"`
 }
 
 type ExceptionResponse struct {
