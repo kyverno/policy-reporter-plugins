@@ -100,6 +100,23 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 	kinds := []string{request.Resource.Kind}
 	if utils.Contains(ControllerKinds, request.Resource.Kind) {
 		kinds = append(kinds, "Pod")
+
+		if len(request.Policy.Rules) == 1 && strings.HasPrefix(request.Policy.Rules[0], "autogen-cronjob-") {
+			request.Policy.Rules = append(
+				request.Policy.Rules,
+				strings.Replace(request.Policy.Rules[0], "autogen-cronjob-", "autogen-", 1),
+				strings.TrimPrefix(request.Policy.Rules[0], "autogen-cronjob-"),
+			)
+		} else if len(request.Policy.Rules) == 1 && strings.HasPrefix(request.Policy.Rules[0], "autogen-") {
+			request.Policy.Rules = append(
+				request.Policy.Rules,
+				strings.TrimPrefix(request.Policy.Rules[0], "autogen-"),
+			)
+		}
+	}
+
+	if request.Resource.Kind == "Deployment" {
+		kinds = append(kinds, "ReplicaSet")
 	}
 
 	if request.Resource.Kind == "CronJob" {
@@ -138,14 +155,16 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 
 	data, _ := json.Marshal(exception)
 
-	var output bytes.Buffer
+	var output strings.Builder
 
 	if err := json2yaml.Convert(&output, bytes.NewReader(data)); err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	ctx.Data(http.StatusOK, "application/yaml; charset=utf-8", output.Bytes())
+	ctx.JSON(http.StatusOK, api.ExceptionResponse{
+		Resource: output.String(),
+	})
 }
 
 func NewHandler(client kyverno.Client, coreAPI *core.Client) *APIHandler {
