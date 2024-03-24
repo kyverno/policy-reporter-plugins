@@ -287,6 +287,38 @@ http://localhost:8083/policies/default/restrict-apparmor-profiles
 
 ![Kyverno Policy Details](./screens/kyverno-details.png)
 
+### [POST] V1 Policy Exception API
+
+The `/v1/policies/exception` API provides a way to create an Exception for a given Resource, Policy and Rules.
+
+### Request Body
+
+```json
+{
+  "resource": {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "name": "local-path-provisioner",
+    "namespace": "local-path-storage"
+  },
+  "policy": {
+    "name": "disallow-capabilities-strict",
+    "rules": ["autogen-require-drop-all"]
+  }
+}
+```
+
+### Response
+
+```json
+{
+    "resource": "kind: PolicyException\napiVersion: kyverno.io/v2beta1\nmetadata:\n  name: local-path-provisioner-exception\n  namespace: local-path-storage\n  creationTimestamp: null\nspec:\n  match:\n    any:\n      - resources:\n          kinds:\n            - Deployment\n            - Pod\n            - ReplicaSet\n          names:\n            - local-path-provisioner*\n          namespaces:\n            - local-path-storage\n  exceptions:\n    - policyName: disallow-capabilities-strict\n      ruleNames:\n        - autogen-require-drop-all\n        - require-drop-all\n"
+}
+```
+
+![Kyverno PolicyException](./screens/kyverno-exception.png)
+
+Examples:
 ## Example Client
 
 In `/example` you find an example plugin service with fixture content and a Swagger UI.
