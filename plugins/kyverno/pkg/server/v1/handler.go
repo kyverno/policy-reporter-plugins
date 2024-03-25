@@ -72,46 +72,50 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 		return
 	}
 
-	if len(request.Policy.Rules) == 0 {
-		name, namespace := utils.SplitPolicyName(request.Policy.Name)
+	for i, policy := range request.Policies {
+		if len(policy.Rules) == 0 {
+			name, namespace := utils.SplitPolicyName(policy.Name)
 
-		policy, err := h.client.GetCRD(ctx, name, namespace)
-		if err != nil {
-			ctx.AbortWithError(http.StatusNotFound, err)
+			policy, err := h.client.GetCRD(ctx, name, namespace)
+			if err != nil {
+				ctx.AbortWithError(http.StatusNotFound, err)
+			}
+
+			var rules []string
+
+			if policy.GetSpec() != nil {
+				rules = utils.Map(policy.GetSpec().Rules, func(rule v1.Rule) string {
+					return rule.Name
+				})
+			}
+
+			if policy.GetStatus() != nil {
+				rules = append(rules, utils.Map(policy.GetStatus().Autogen.Rules, func(rule v1.Rule) string {
+					return rule.Name
+				})...)
+			}
+
+			request.Policies[i].Rules = rules
 		}
-
-		var rules []string
-
-		if policy.GetSpec() != nil {
-			rules = utils.Map(policy.GetSpec().Rules, func(rule v1.Rule) string {
-				return rule.Name
-			})
-		}
-
-		if policy.GetStatus() != nil {
-			rules = append(rules, utils.Map(policy.GetStatus().Autogen.Rules, func(rule v1.Rule) string {
-				return rule.Name
-			})...)
-		}
-
-		request.Policy.Rules = rules
 	}
 
 	kinds := []string{request.Resource.Kind}
 	if utils.Contains(ControllerKinds, request.Resource.Kind) {
 		kinds = append(kinds, "Pod")
 
-		if len(request.Policy.Rules) == 1 && strings.HasPrefix(request.Policy.Rules[0], "autogen-cronjob-") {
-			request.Policy.Rules = append(
-				request.Policy.Rules,
-				strings.Replace(request.Policy.Rules[0], "autogen-cronjob-", "autogen-", 1),
-				strings.TrimPrefix(request.Policy.Rules[0], "autogen-cronjob-"),
-			)
-		} else if len(request.Policy.Rules) == 1 && strings.HasPrefix(request.Policy.Rules[0], "autogen-") {
-			request.Policy.Rules = append(
-				request.Policy.Rules,
-				strings.TrimPrefix(request.Policy.Rules[0], "autogen-"),
-			)
+		for i, policy := range request.Policies {
+			if len(policy.Rules) == 1 && strings.HasPrefix(policy.Rules[0], "autogen-cronjob-") {
+				request.Policies[i].Rules = append(
+					policy.Rules,
+					strings.Replace(policy.Rules[0], "autogen-cronjob-", "autogen-", 1),
+					strings.TrimPrefix(policy.Rules[0], "autogen-cronjob-"),
+				)
+			} else if len(policy.Rules) == 1 && strings.HasPrefix(policy.Rules[0], "autogen-") {
+				request.Policies[i].Rules = append(
+					policy.Rules,
+					strings.TrimPrefix(policy.Rules[0], "autogen-"),
+				)
+			}
 		}
 	}
 
@@ -121,6 +125,14 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 
 	if request.Resource.Kind == "CronJob" {
 		kinds = append(kinds, "Job")
+	}
+
+	exPolicies := make([]v2beta1.Exception, 0, len(request.Policies))
+	for _, p := range request.Policies {
+		exPolicies = append(exPolicies, v2beta1.Exception{
+			PolicyName: p.Name,
+			RuleNames:  p.Rules,
+		})
 	}
 
 	exception := v2beta1.PolicyException{
@@ -133,12 +145,7 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 			Namespace: request.Resource.Namespace,
 		},
 		Spec: v2beta1.PolicyExceptionSpec{
-			Exceptions: []v2beta1.Exception{
-				{
-					PolicyName: request.Policy.Name,
-					RuleNames:  request.Policy.Rules,
-				},
-			},
+			Exceptions: exPolicies,
 			Match: v2beta1.MatchResources{
 				Any: []v1.ResourceFilter{
 					{

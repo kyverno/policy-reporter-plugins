@@ -69,8 +69,8 @@ type ExceptionPolicy struct {
 }
 
 type ExceptionRequest struct {
-	Resource Resource        `json:"resource"`
-	Policy   ExceptionPolicy `json:"policy"`
+	Resource Resource           `json:"resource"`
+	Policies []*ExceptionPolicy `json:"policies"`
 }
 
 type ExceptionResponse struct {

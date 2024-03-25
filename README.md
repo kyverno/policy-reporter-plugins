@@ -301,10 +301,10 @@ The `/v1/policies/exception` API provides a way to create an Exception for a giv
     "name": "local-path-provisioner",
     "namespace": "local-path-storage"
   },
-  "policy": {
+  "policies": [{
     "name": "disallow-capabilities-strict",
     "rules": ["autogen-require-drop-all"]
-  }
+  }]
 }
 ```
 
