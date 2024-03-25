@@ -104,17 +104,19 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 		kinds = append(kinds, "Pod")
 
 		for i, policy := range request.Policies {
-			if len(policy.Rules) == 1 && strings.HasPrefix(policy.Rules[0], "autogen-cronjob-") {
-				request.Policies[i].Rules = append(
-					policy.Rules,
-					strings.Replace(policy.Rules[0], "autogen-cronjob-", "autogen-", 1),
-					strings.TrimPrefix(policy.Rules[0], "autogen-cronjob-"),
-				)
-			} else if len(policy.Rules) == 1 && strings.HasPrefix(policy.Rules[0], "autogen-") {
-				request.Policies[i].Rules = append(
-					policy.Rules,
-					strings.TrimPrefix(policy.Rules[0], "autogen-"),
-				)
+			for _, rule := range policy.Rules {
+				if strings.HasPrefix(rule, "autogen-cronjob-") {
+					request.Policies[i].Rules = append(
+						policy.Rules,
+						strings.Replace(rule, "autogen-cronjob-", "autogen-", 1),
+						strings.TrimPrefix(rule, "autogen-cronjob-"),
+					)
+				} else if strings.HasPrefix(rule, "autogen-") {
+					request.Policies[i].Rules = append(
+						policy.Rules,
+						strings.TrimPrefix(rule, "autogen-"),
+					)
+				}
 			}
 		}
 	}
