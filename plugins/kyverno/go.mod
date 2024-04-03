@@ -5,9 +5,9 @@ go 1.22
 replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/api
 
 require (
-	github.com/gin-contrib/gzip v0.0.6
+	github.com/gin-contrib/gzip v1.0.0
 	github.com/gin-contrib/pprof v1.4.0
-	github.com/gin-contrib/zap v1.1.0
+	github.com/gin-contrib/zap v1.1.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/itchyny/json2yaml v0.1.4
 	github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0
@@ -79,7 +79,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.7.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
-	golang.org/x/exp v0.0.0-20240318143956-a85f2c67cd81 // indirect
+	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
 	golang.org/x/oauth2 v0.18.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/term v0.18.0 // indirect
@@ -91,7 +91,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/component-base v0.29.3 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
+	k8s.io/kube-openapi v0.0.0-20240322212309-b815d8309940 // indirect
 	k8s.io/utils v0.0.0-20240310230437-4693a0247e57 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect

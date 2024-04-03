@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/itchyny/json2yaml"
+	"go.uber.org/zap"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -81,17 +83,17 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 				ctx.AbortWithError(http.StatusNotFound, err)
 			}
 
-			var rules []string
+			var rules []api.ExceptionRule
 
 			if policy.GetSpec() != nil {
-				rules = utils.Map(policy.GetSpec().Rules, func(rule v1.Rule) string {
-					return rule.Name
+				rules = utils.Map(policy.GetSpec().Rules, func(rule v1.Rule) api.ExceptionRule {
+					return api.ExceptionRule{Name: rule.Name}
 				})
 			}
 
 			if policy.GetStatus() != nil {
-				rules = append(rules, utils.Map(policy.GetStatus().Autogen.Rules, func(rule v1.Rule) string {
-					return rule.Name
+				rules = append(rules, utils.Map(policy.GetStatus().Autogen.Rules, func(rule v1.Rule) api.ExceptionRule {
+					return api.ExceptionRule{Name: rule.Name}
 				})...)
 			}
 
@@ -99,23 +101,51 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 		}
 	}
 
+	pssList := make([]v1.PodSecurityStandard, 0)
+
 	kinds := []string{request.Resource.Kind}
 	if utils.Contains(ControllerKinds, request.Resource.Kind) {
 		kinds = append(kinds, "Pod")
 
 		for i, policy := range request.Policies {
 			for _, rule := range policy.Rules {
-				if strings.HasPrefix(rule, "autogen-cronjob-") {
+				if strings.HasPrefix(rule.Name, "autogen-cronjob-") {
 					request.Policies[i].Rules = append(
 						policy.Rules,
-						strings.Replace(rule, "autogen-cronjob-", "autogen-", 1),
-						strings.TrimPrefix(rule, "autogen-cronjob-"),
+						api.ExceptionRule{Name: strings.Replace(rule.Name, "autogen-cronjob-", "autogen-", 1)},
+						api.ExceptionRule{Name: strings.TrimPrefix(rule.Name, "autogen-cronjob-")},
 					)
-				} else if strings.HasPrefix(rule, "autogen-") {
+				} else if strings.HasPrefix(rule.Name, "autogen-") {
 					request.Policies[i].Rules = append(
 						policy.Rules,
-						strings.TrimPrefix(rule, "autogen-"),
+						api.ExceptionRule{Name: strings.TrimPrefix(rule.Name, "autogen-")},
 					)
+				}
+
+				if cl, ok := rule.Props["controlsJSON"]; ok {
+					var controls []kyverno.Control
+					err := json.Unmarshal([]byte(cl), &controls)
+					if err != nil {
+						zap.L().Error("failed to unmarshal control", zap.Error(err), zap.String("control", cl))
+						continue
+					}
+
+					for _, c := range controls {
+						pss := v1.PodSecurityStandard{
+							ControlName: c.Name,
+						}
+						if c.Images != nil {
+							pss.Images = wildcardTagOrDigest(c.Images)
+						}
+						pssList = append(pssList, pss)
+					}
+				} else if cl, ok := rule.Props["controls"]; ok {
+					controls := strings.Split(cl, ",")
+					for _, c := range controls {
+						pssList = append(pssList, v1.PodSecurityStandard{
+							ControlName: c,
+						})
+					}
 				}
 			}
 		}
@@ -133,7 +163,9 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 	for _, p := range request.Policies {
 		exPolicies = append(exPolicies, v2beta1.Exception{
 			PolicyName: p.Name,
-			RuleNames:  p.Rules,
+			RuleNames: utils.Map(p.Rules, func(rule api.ExceptionRule) string {
+				return rule.Name
+			}),
 		})
 	}
 
@@ -159,6 +191,7 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 					},
 				},
 			},
+			PodSecurity: pssList,
 		},
 	}
 
@@ -171,8 +204,14 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 		return
 	}
 
+	minVersion := "1.11"
+	if len(exception.Spec.PodSecurity) > 0 {
+		minVersion = "1.12"
+	}
+
 	ctx.JSON(http.StatusOK, api.ExceptionResponse{
-		Resource: output.String(),
+		MinVersion: minVersion,
+		Resource:   output.String(),
 	})
 }
 
@@ -184,4 +223,13 @@ func WithAPI(client kyverno.Client, coreAPI *core.Client) server.ServerOption {
 	return func(s *server.Server) error {
 		return s.Register("api", NewHandler(client, coreAPI))
 	}
+}
+
+var regexpTagOrDigest = regexp.MustCompile(":.*|@.*")
+
+func wildcardTagOrDigest(images []string) []string {
+	for i, s := range images {
+		images[i] = regexpTagOrDigest.ReplaceAllString(s, "*")
+	}
+	return images
 }

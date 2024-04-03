@@ -4,6 +4,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type Control struct {
+	ID     string
+	Name   string
+	Images []string
+}
+
 func mapContent(policy map[string]any) string {
 	if policy == nil {
 		return ""
