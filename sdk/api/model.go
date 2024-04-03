@@ -79,5 +79,6 @@ type ExceptionRequest struct {
 }
 
 type ExceptionResponse struct {
-	Resource string `json:"resource,omitempty"`
+	MinVersion string `json:"minVersion,omitempty"`
+	Resource   string `json:"resource,omitempty"`
 }
