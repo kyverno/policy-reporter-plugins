@@ -107,7 +107,7 @@ func (c *client) GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error) 
 			Title:       title,
 			Namespace:   p.Namespace,
 			Name:        p.Name,
-			Category:    p.Annotations[AnnotationPolicyCategory],
+			Category:    utils.Defaults(p.Annotations[AnnotationPolicyCategory], "Other"),
 			Severity:    p.Annotations[AnnotationPolicySeverity],
 			Description: p.Annotations[AnnotationPolicyDescription],
 		}
