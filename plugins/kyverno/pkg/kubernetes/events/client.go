@@ -94,6 +94,11 @@ func ConvertEvent(event *corev1.Event, policy kyvernov1.PolicyInterface, updated
 		}
 	}
 
+	timestamp := event.LastTimestamp.Time
+	if timestamp.IsZero() {
+		timestamp = time.Now()
+	}
+
 	return violation.PolicyViolation{
 		Resource: violation.Resource{
 			Kind:      strings.TrimSpace(parts[0]),
@@ -107,7 +112,7 @@ func ConvertEvent(event *corev1.Event, policy kyvernov1.PolicyInterface, updated
 			Category: policy.GetAnnotations()[kyverno.AnnotationPolicyCategory],
 			Severity: policy.GetAnnotations()[kyverno.AnnotationPolicySeverity],
 		},
-		Timestamp: event.LastTimestamp.Time,
+		Timestamp: timestamp,
 		Updated:   updated,
 		Event: violation.Event{
 			Name: event.Name,
