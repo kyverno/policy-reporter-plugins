@@ -1,8 +1,6 @@
 module github.com/kyverno/policy-reporter/kyverno-plugin
 
-go 1.22.0
-
-toolchain go1.23.0
+go 1.23.0
 
 replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/api
 
