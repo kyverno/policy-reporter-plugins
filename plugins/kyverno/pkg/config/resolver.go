@@ -152,7 +152,12 @@ func (r *Resolver) KyvernoClient() (kyverno.Client, error) {
 		return nil, err
 	}
 
-	r.kyvernoClient = kyverno.NewClient(m, d, k, gocache.New(15*time.Second, 5*time.Second))
+	c, err := r.CoreClient(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	r.kyvernoClient = kyverno.NewClient(m, d, k, c, gocache.New(15*time.Second, 5*time.Second))
 
 	return r.kyvernoClient, nil
 }

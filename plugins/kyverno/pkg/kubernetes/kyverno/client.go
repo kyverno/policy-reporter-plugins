@@ -2,6 +2,8 @@ package kyverno
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 	"strings"
 	"sync"
 
@@ -14,6 +16,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/metadata"
 
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
 	apiV1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
 	kyvernoTypes "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
 	kyvernoV1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v1"
@@ -48,6 +51,7 @@ type client struct {
 	metaClient    metadata.Interface
 	dynamicClient dynamic.Interface
 	v1Client      kyvernoV1.KyvernoV1Interface
+	coreClient    *core.Client
 	cache         *gocache.Cache
 }
 
@@ -155,7 +159,9 @@ func (c *client) GetPolicy(ctx context.Context, resource string) (*sdk.Policy, e
 
 	metadata := policy["metadata"].(map[string]any)
 
-	details.Name = metadata["name"].(string)
+	details.Name = name
+	details.Namespace = namespace
+
 	if a, ok := metadata["annotations"]; ok {
 		annotations := a.(map[string]any)
 
@@ -181,9 +187,9 @@ func (c *client) GetPolicy(ctx context.Context, resource string) (*sdk.Policy, e
 				return strings.TrimSpace(s)
 			})
 		}
+	}
 
-		spec := policy["spec"].(map[string]any)
-
+	if spec, ok := policy["spec"].(map[string]any); ok {
 		details.Details = []sdk.DetailsItem{
 			{Title: "Background", Value: toBoolString(spec["background"])},
 			{Title: "Admission", Value: toBoolString(spec["admission"])},
@@ -191,6 +197,29 @@ func (c *client) GetPolicy(ctx context.Context, resource string) (*sdk.Policy, e
 			{Title: "Mode", Value: toString(spec["validationFailureAction"])},
 		}
 	}
+
+	query := url.Values{}
+	query.Set("policy", name)
+	query.Set("source", "kyverno")
+
+	if namespace != "" {
+		query.Set("namespace", namespace)
+	}
+
+	if exceptions, _ := c.coreClient.GetPropertyValues(ctx, "exception", query); len(exceptions) > 0 {
+		list := utils.Map(exceptions, func(e core.ResultProperty) sdk.DetailsItem {
+			return sdk.DetailsItem{
+				Title: "Name",
+				Value: fmt.Sprintf("%s/%s", e.Namespace, e.Property),
+			}
+		})
+
+		details.Additional = append(details.Additional, sdk.Details{
+			Title: "Policy Exceptions",
+			Items: list,
+		})
+	}
+
 	if details.Title == "" {
 		details.Title = details.Name
 	}
@@ -214,6 +243,6 @@ func toString(value any) string {
 	return ""
 }
 
-func NewClient(metaClient metadata.Interface, dynamicClient dynamic.Interface, kclient kyvernoV1.KyvernoV1Interface, cache *gocache.Cache) Client {
-	return &client{metaClient, dynamicClient, kclient, cache}
+func NewClient(metaClient metadata.Interface, dynamicClient dynamic.Interface, kclient kyvernoV1.KyvernoV1Interface, coreClient *core.Client, cache *gocache.Cache) Client {
+	return &client{metaClient, dynamicClient, kclient, coreClient, cache}
 }

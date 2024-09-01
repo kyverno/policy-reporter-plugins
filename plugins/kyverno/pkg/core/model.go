@@ -9,6 +9,11 @@ type Category struct {
 	Fail  int    `json:"fail"`
 }
 
+type ResultProperty struct {
+	Namespace string `json:"namespace"`
+	Property  string `json:"property"`
+}
+
 type Resource struct {
 	ID         string `json:"id,omitempty"`
 	UID        string `json:"uid,omitempty"`

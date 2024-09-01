@@ -24,6 +24,16 @@ type Client struct {
 	auth    *BasicAuth
 }
 
+func (c *Client) GetPropertyValues(ctx context.Context, property string, query url.Values) ([]ResultProperty, error) {
+	resp, err := c.get(ctx, fmt.Sprintf("/v2/properties/%s", property), query)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return decodeList[ResultProperty](resp.Body)
+}
+
 func (c *Client) GetResource(ctx context.Context, id string) (*Resource, error) {
 	resp, err := c.get(ctx, fmt.Sprintf("/v2/resource/%s", id), url.Values{})
 	if err != nil {
