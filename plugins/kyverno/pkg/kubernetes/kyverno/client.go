@@ -102,9 +102,11 @@ func (c *client) GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error) 
 	}
 
 	policies := utils.Map(results, func(p v1.PartialObjectMetadata) sdk.PolicyListItem {
-		title := utils.Title(p.Name)
+		var title string
 		if v, ok := p.Annotations[AnnotationPolicyTitle]; ok {
 			title = v
+		} else if p.Name != "" {
+			title = utils.Title(p.Name)
 		}
 
 		return sdk.PolicyListItem{
