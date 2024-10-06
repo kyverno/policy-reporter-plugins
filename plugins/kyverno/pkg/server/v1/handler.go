@@ -33,9 +33,9 @@ type APIHandler struct {
 }
 
 func (h *APIHandler) Register(engine *gin.RouterGroup) error {
-	engine.GET("v1/policies", h.List)
-	engine.GET("v1/policies/*policy", h.Get)
-	engine.POST("v1/policies/exception", h.Exception)
+	engine.GET("policies", h.List)
+	engine.GET("policies/*policy", h.Get)
+	engine.POST("policies/exception", h.Exception)
 
 	return nil
 }
@@ -169,6 +169,11 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 		})
 	}
 
+	namespaces := make([]string, 0, 1)
+	if request.Resource.Namespace != "" {
+		namespaces = append(namespaces, request.Resource.Namespace)
+	}
+
 	exception := v2beta1.PolicyException{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PolicyException",
@@ -185,7 +190,7 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 					{
 						ResourceDescription: v1.ResourceDescription{
 							Kinds:      kinds,
-							Namespaces: []string{request.Resource.Namespace},
+							Namespaces: namespaces,
 							Names:      []string{fmt.Sprintf("%s*", request.Resource.Name)},
 						},
 					},
@@ -221,7 +226,7 @@ func NewHandler(client kyverno.Client, coreAPI *core.Client) *APIHandler {
 
 func WithAPI(client kyverno.Client, coreAPI *core.Client) server.ServerOption {
 	return func(s *server.Server) error {
-		return s.Register("api", NewHandler(client, coreAPI))
+		return s.Register("v1", NewHandler(client, coreAPI))
 	}
 }
 

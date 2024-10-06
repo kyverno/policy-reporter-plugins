@@ -104,6 +104,6 @@ func NewHandler(coreAPI *core.Client, service *vulnr.Service) *APIHandler {
 
 func WithAPI(coreAPI *core.Client, service *vulnr.Service) server.ServerOption {
 	return func(s *server.Server) error {
-		return s.Register("api/vulnr", NewHandler(coreAPI, service))
+		return s.Register("vulnr", NewHandler(coreAPI, service))
 	}
 }
