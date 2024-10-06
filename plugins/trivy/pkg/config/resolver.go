@@ -140,7 +140,7 @@ func (r *Resolver) Server(ctx context.Context, options []server.ServerOption) (*
 	engine := gin.New()
 	defaults := []server.ServerOption{server.WithGZIP()}
 
-	if r.config.Logging.Enabled || r.config.Server.Debug {
+	if r.config.Logging.Server || r.config.Server.Debug {
 		defaults = append(defaults, server.WithLogging(zap.L()))
 	} else {
 		defaults = append(defaults, server.WithRecovery())
@@ -194,7 +194,7 @@ func (r *Resolver) CoreClient(ctx context.Context) (*core.Client, error) {
 		}))
 	}
 
-	if r.config.Logging.Enabled && r.config.Logging.LogLevel < 0 {
+	if r.config.Logging.API && r.config.Logging.LogLevel < 0 {
 		options = append(options, api.WithLogging())
 	}
 
@@ -204,7 +204,7 @@ func (r *Resolver) CoreClient(ctx context.Context) (*core.Client, error) {
 func (r *Resolver) CVEClient() (*cveawg.Client, error) {
 	options := []api.ClientOption{}
 
-	if r.config.Logging.Enabled && r.config.Logging.LogLevel < 0 {
+	if r.config.Logging.API && r.config.Logging.LogLevel < 0 {
 		options = append(options, api.WithLogging())
 	}
 
