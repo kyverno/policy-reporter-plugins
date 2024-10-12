@@ -28,4 +28,6 @@ func GeneratePolicyReportResultID(eventID string, lastTimestamp time.Time) strin
 
 type Client interface {
 	ProcessViolation(context.Context, violation.PolicyViolation) error
+	UpdatePolicyReports(context.Context) error
+	UpdateClusterPolicyReports(context.Context) error
 }

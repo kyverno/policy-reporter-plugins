@@ -22,7 +22,7 @@ func NewPolicyReportFakeCilent() (v1alpha2client.Wgpolicyk8sV1alpha2Interface, v
 
 func Test_CreateNewPolicyReportForViolation(t *testing.T) {
 	client, polrAPI, _ := NewPolicyReportFakeCilent()
-	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", false)
+	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", false, make(map[string]string, 0), make(map[string]string, 0))
 	ctx := context.Background()
 
 	violation := violation.PolicyViolation{
@@ -65,7 +65,7 @@ func Test_CreateNewPolicyReportForViolation(t *testing.T) {
 
 func Test_UpdateExistingPolicyReportWithoutKeepOnlyLatest(t *testing.T) {
 	client, polrAPI, _ := NewPolicyReportFakeCilent()
-	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", true)
+	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", true, make(map[string]string, 0), make(map[string]string, 0))
 	ctx := context.Background()
 	now := time.Now()
 	updated := now.Add(5 * time.Minute)
@@ -138,7 +138,7 @@ func Test_UpdateExistingPolicyReportWithoutKeepOnlyLatest(t *testing.T) {
 
 func Test_AddUpdateToPolicyReport(t *testing.T) {
 	client, polrAPI, _ := NewPolicyReportFakeCilent()
-	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", false)
+	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", false, make(map[string]string, 0), make(map[string]string, 0))
 	ctx := context.Background()
 	now := time.Now()
 	updated := now.Add(5 * time.Minute)
@@ -210,7 +210,7 @@ func Test_AddUpdateToPolicyReport(t *testing.T) {
 
 func Test_MaxResultLimitForResults(t *testing.T) {
 	client, polrAPI, _ := NewPolicyReportFakeCilent()
-	polrClient := policyreport.NewClient(client, 1, "Kyverno Event", false)
+	polrClient := policyreport.NewClient(client, 1, "Kyverno Event", false, make(map[string]string, 0), make(map[string]string, 0))
 	ctx := context.Background()
 	now := time.Now()
 	updated := now.Add(5 * time.Minute)
@@ -281,7 +281,7 @@ func Test_MaxResultLimitForResults(t *testing.T) {
 
 func Test_CreateNewClusterPolicyReportForViolation(t *testing.T) {
 	client, _, polrAPI := NewPolicyReportFakeCilent()
-	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", false)
+	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", false, make(map[string]string, 0), make(map[string]string, 0))
 	ctx := context.Background()
 
 	violation := violation.PolicyViolation{
@@ -323,7 +323,7 @@ func Test_CreateNewClusterPolicyReportForViolation(t *testing.T) {
 
 func Test_UpdateExistingClusterPolicyReportWithoutKeepOnlyLatest(t *testing.T) {
 	client, _, polrAPI := NewPolicyReportFakeCilent()
-	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", true)
+	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", true, make(map[string]string, 0), make(map[string]string, 0))
 	ctx := context.Background()
 	now := time.Now()
 	updated := now.Add(5 * time.Minute)
@@ -419,7 +419,7 @@ func Test_UpdateExistingClusterPolicyReportWithoutKeepOnlyLatest(t *testing.T) {
 
 func Test_AddUpdateToClusterPolicyReport(t *testing.T) {
 	client, _, polrAPI := NewPolicyReportFakeCilent()
-	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", false)
+	polrClient := policyreport.NewClient(client, 10, "Kyverno Event", false, make(map[string]string, 0), make(map[string]string, 0))
 	ctx := context.Background()
 	now := time.Now()
 	updated := now.Add(5 * time.Minute)
@@ -489,7 +489,7 @@ func Test_AddUpdateToClusterPolicyReport(t *testing.T) {
 
 func Test_MaxResultLimitForClusterPolicyReportResults(t *testing.T) {
 	client, _, polrAPI := NewPolicyReportFakeCilent()
-	polrClient := policyreport.NewClient(client, 1, "Kyverno Event", false)
+	polrClient := policyreport.NewClient(client, 1, "Kyverno Event", false, make(map[string]string, 0), make(map[string]string, 0))
 	ctx := context.Background()
 	now := time.Now()
 	updated := now.Add(5 * time.Minute)

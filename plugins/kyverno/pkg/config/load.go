@@ -9,13 +9,14 @@ import (
 )
 
 func Load(c *Config, cfgFile string) error {
-	v := viper.New()
+	v := viper.NewWithOptions(viper.KeyDelimiter("!"))
 
 	if cfgFile != "" {
 		v.SetConfigFile(cfgFile)
 	} else {
 		v.AddConfigPath(".")
 		v.SetConfigName("config")
+		v.AllKeys()
 	}
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
