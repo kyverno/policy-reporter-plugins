@@ -34,11 +34,17 @@ type LeaderElection struct {
 	Enabled         bool   `mapstructure:"enabled"`
 }
 
+type PolicyReport struct {
+	Labels      map[string]string `mapstructure:"labels"`
+	Annotations map[string]string `mapstructure:"annotations"`
+}
+
 type BlockReports struct {
-	Enabled        bool    `mapstructure:"enabled"`
-	Results        Results `mapstructure:"results"`
-	Source         string  `mapstructure:"source"`
-	EventNamespace string  `mapstructure:"eventNamespace"`
+	Enabled        bool         `mapstructure:"enabled"`
+	Results        Results      `mapstructure:"results"`
+	Source         string       `mapstructure:"source"`
+	EventNamespace string       `mapstructure:"eventNamespace"`
+	PolicyReport   PolicyReport `mapstructure:"policyReport"`
 }
 
 type CoreAPI struct {

@@ -241,11 +241,21 @@ func (r *Resolver) PolicyReportClient() (policyreport.Client, error) {
 		return nil, err
 	}
 
+	if r.config.BlockReports.PolicyReport.Labels == nil {
+		r.config.BlockReports.PolicyReport.Labels = make(map[string]string, 0)
+	}
+
+	if r.config.BlockReports.PolicyReport.Annotations == nil {
+		r.config.BlockReports.PolicyReport.Annotations = make(map[string]string, 0)
+	}
+
 	policyreportClient := policyreport.NewClient(
 		client,
 		r.config.BlockReports.Results.MaxPerReport,
 		r.config.BlockReports.Source,
 		r.config.BlockReports.Results.KeepOnlyLatest,
+		r.config.BlockReports.PolicyReport.Labels,
+		r.config.BlockReports.PolicyReport.Annotations,
 	)
 
 	r.polrClient = policyreportClient

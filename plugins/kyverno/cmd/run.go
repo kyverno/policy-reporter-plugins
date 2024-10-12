@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/config"
@@ -49,6 +50,8 @@ func newRunCMD() *cobra.Command {
 				return err
 			}
 
+			group := &errgroup.Group{}
+
 			if c.BlockReports.Enabled {
 				logger.Info("block reports enabled", zap.Int("resultsPerReport", c.BlockReports.Results.MaxPerReport))
 				eventClient, err := resolver.EventClient()
@@ -77,9 +80,20 @@ func newRunCMD() *cobra.Command {
 					leClient.RegisterOnStart(func(c context.Context) {
 						logger.Info("started leadership")
 
-						stop = make(chan struct{})
+						g := &errgroup.Group{}
+						g.Go(func() error {
+							return policyReportClient.UpdatePolicyReports(c)
+						})
+						g.Go(func() error {
+							return policyReportClient.UpdateClusterPolicyReports(c)
+						})
 
-						if err = eventClient.Run(c, stop); err != nil {
+						if err := g.Wait(); err != nil {
+							logger.Error("failed to update existing policy reports", zap.Error(err))
+						}
+
+						stop = make(chan struct{})
+						if err := eventClient.Run(c, stop); err != nil {
 							logger.Error("failed to run EventClient", zap.Error(err))
 						}
 					}).RegisterOnNew(func(currentID, lockID string) {
@@ -91,17 +105,35 @@ func newRunCMD() *cobra.Command {
 						close(stop)
 					})
 
-					go leClient.Run(cmd.Context())
+					group.Go(func() error {
+						leClient.Run(cmd.Context())
+						return nil
+					})
 				} else {
-					stop = make(chan struct{})
-					if err = eventClient.Run(cmd.Context(), stop); err != nil {
-						return err
-					}
+					group.Go(func() error {
+						g := &errgroup.Group{}
+						g.Go(func() error {
+							return policyReportClient.UpdatePolicyReports(cmd.Context())
+						})
+						g.Go(func() error {
+							return policyReportClient.UpdateClusterPolicyReports(cmd.Context())
+						})
+
+						if err := g.Wait(); err != nil {
+							logger.Error("failed to update existing policy reports", zap.Error(err))
+						}
+
+						return eventClient.Run(cmd.Context(), stop)
+					})
 				}
 			}
 
-			logger.Info("server starts", zap.Int("port", c.Server.Port))
-			return server.Start()
+			group.Go(func() error {
+				logger.Info("server starts", zap.Int("port", c.Server.Port))
+				return server.Start()
+			})
+
+			return group.Wait()
 		},
 	}
 
