@@ -24,7 +24,7 @@ require (
 	k8s.io/apiextensions-apiserver v0.31.3
 	k8s.io/apimachinery v0.31.4
 	k8s.io/client-go v0.31.4
-	k8s.io/pod-security-admission v0.31.3
+	k8s.io/pod-security-admission v0.31.4
 )
 
 require (
@@ -91,7 +91,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/component-base v0.31.3 // indirect
+	k8s.io/component-base v0.31.4 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241009091222-67ed5848f094 // indirect
 	k8s.io/utils v0.0.0-20240921022957-49e7df575cb6 // indirect
