@@ -13,6 +13,7 @@ import (
 
 type Service struct {
 	cveAPI   *cveawg.Client
+	db       *Database
 	ghClient *gh.Client
 	cache    *gocache.Cache
 }
@@ -36,7 +37,7 @@ func (s *Service) Get(ctx context.Context, name string) (*Vulnerability, error) 
 			return nil, err
 		}
 
-		trivyCVE, err := s.cveAPI.FetchFromTrivyDB(ctx, name)
+		trivyCVE, err := s.db.Get(name)
 		if err != nil {
 			zap.L().Warn("unable to load CVE from TrivyDB", zap.String("cve", name), zap.Error(err))
 		}
@@ -49,6 +50,6 @@ func (s *Service) Get(ctx context.Context, name string) (*Vulnerability, error) 
 	return details, nil
 }
 
-func New(cveAPI *cveawg.Client, ghClient *gh.Client, cache *gocache.Cache) *Service {
-	return &Service{cveAPI, ghClient, cache}
+func New(cveAPI *cveawg.Client, db *Database, ghClient *gh.Client, cache *gocache.Cache) *Service {
+	return &Service{cveAPI, db, ghClient, cache}
 }
