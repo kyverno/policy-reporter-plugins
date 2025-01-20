@@ -78,12 +78,19 @@ func MapCVE(cve *cveawg.CVE, trivyCVE *types.Vulnerability) *Vulnerability {
 		}
 	}
 
-	if trivyCVE != nil {
+	if trivyCVE != nil && trivyCVE.PublishedDate != nil {
 		vulnr.Details = append(vulnr.Details, Details{Title: "Additional", Items: []Item{
 			{Title: "Assigner", Value: cve.CveMetadata.AssignerShortName},
 			{Title: "Published", Value: trivyCVE.PublishedDate.Format(time.RFC3339)},
 		}})
+	} else {
+		vulnr.Details = append(vulnr.Details, Details{Title: "Additional", Items: []Item{
+			{Title: "Assigner", Value: cve.CveMetadata.AssignerShortName},
+			{Title: "Published", Value: cve.CveMetadata.DatePublished},
+		}})
+	}
 
+	if trivyCVE != nil {
 		if len(trivyCVE.CweIDs) > 0 {
 			vulnr.Details[0].Items = append(vulnr.Details[0].Items, Item{Title: "CWE IDs", Value: strings.Join(trivyCVE.CweIDs, ", ")})
 		}
@@ -124,11 +131,6 @@ func MapCVE(cve *cveawg.CVE, trivyCVE *types.Vulnerability) *Vulnerability {
 		vulnr.Title = cve.CveMetadata.CveID
 		vulnr.Description = trivyCVE.Description
 	} else {
-		vulnr.Details = append(vulnr.Details, Details{Title: "Additional", Items: []Item{
-			{Title: "Assigner", Value: cve.CveMetadata.AssignerShortName},
-			{Title: "Published", Value: cve.CveMetadata.DatePublished},
-		}})
-
 		for _, ref := range cve.Containers.Cna.References {
 			vulnr.References = append(vulnr.References, ref.URL)
 		}
