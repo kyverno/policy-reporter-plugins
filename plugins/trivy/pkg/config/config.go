@@ -47,6 +47,10 @@ func (a CoreAPI) FromValues(values secrets.Values) CoreAPI {
 	return a
 }
 
+type Trivy struct {
+	DBDir string `mapstructure:"dbDir"`
+}
+
 type Config struct {
 	KubeConfig clientcmd.ConfigOverrides
 	Namespace  string         `mapstructure:"namespace"`
@@ -54,4 +58,5 @@ type Config struct {
 	Server     Server         `mapstructure:"server"`
 	Local      bool           `mapstructure:"local"`
 	CoreAPI    CoreAPI        `mapstructure:"core"`
+	Trivy      Trivy          `mapstructure:"trivy"`
 }

@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aquasecurity/trivy-db/pkg/types"
 	"github.com/google/go-github/v58/github"
 
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/cveawg"
-	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/utils"
 )
 
 func MapSecurityAdvisory(ghsa *github.GlobalSecurityAdvisory) *Vulnerability {
@@ -44,7 +44,7 @@ func MapSecurityAdvisory(ghsa *github.GlobalSecurityAdvisory) *Vulnerability {
 	return vulnr
 }
 
-func MapCVE(cve *cveawg.CVE, trivyCVE *cveawg.TrivyCVE) *Vulnerability {
+func MapCVE(cve *cveawg.CVE, trivyCVE *types.Vulnerability) *Vulnerability {
 	vulnr := &Vulnerability{
 		ID:         cve.CveMetadata.CveID,
 		Title:      cve.CveMetadata.CveID,
@@ -62,50 +62,13 @@ func MapCVE(cve *cveawg.CVE, trivyCVE *cveawg.TrivyCVE) *Vulnerability {
 		}
 	}
 
-	if trivyCVE != nil {
-		for _, url := range trivyCVE.Urls {
-			if url == "" {
-				continue
-			}
-
-			vulnr.References = append(vulnr.References, url)
-		}
-
-		additional := Details{Title: "Additional", Items: []Item{
-			{Title: "CVSS", Value: trivyCVE.Cvss},
-			{Title: "Score", Value: fmt.Sprintf("%.2f", trivyCVE.Score)},
-			{Title: "Severity", Value: trivyCVE.Severity},
-			{Title: "Published", Value: trivyCVE.CreatedAt.Format(time.RFC3339)},
-		}}
-
-		affected := utils.Map(trivyCVE.AffectedVersion, func(v cveawg.AffectedVersion) string {
-			if v.To != "" {
-				return fmt.Sprintf("%s - %s", v.From, v.To)
-			}
-			return v.From
-		})
-		fixed := utils.Map(trivyCVE.FixedVersion, func(v cveawg.FixedVersion) string {
-			return v.Fixed
-		})
-
-		if len(affected) > 0 {
-			additional.Items = append(additional.Items, Item{Title: "Affected Versions", Value: strings.Join(affected, ", ")})
-			additional.Items = append(additional.Items, Item{Title: "Fixed Versions", Value: strings.Join(fixed, ", ")})
-		}
-
-		vulnr.Details = append(vulnr.Details, additional)
-
-		return vulnr
-	}
-
-	vulnr.Details = append(vulnr.Details, Details{Title: "Additional", Items: []Item{
-		{Title: "Assigner", Value: cve.CveMetadata.AssignerShortName},
-		{Title: "Published", Value: cve.CveMetadata.DatePublished},
-	}})
-
 	affected := Details{Title: "Affected Versions", Items: make([]Item, 0)}
 	for _, a := range cve.Containers.Cna.Affected {
 		for _, v := range a.Versions {
+			if v.Version == "n/a" {
+				continue
+			}
+
 			value := v.Version
 			if v.LessThan != "" {
 				value = fmt.Sprintf("from %s before %s", v.Version, v.LessThan)
@@ -115,11 +78,65 @@ func MapCVE(cve *cveawg.CVE, trivyCVE *cveawg.TrivyCVE) *Vulnerability {
 		}
 	}
 
-	for _, ref := range cve.Containers.Cna.References {
-		vulnr.References = append(vulnr.References, ref.URL)
+	if trivyCVE != nil {
+		vulnr.Details = append(vulnr.Details, Details{Title: "Additional", Items: []Item{
+			{Title: "Assigner", Value: cve.CveMetadata.AssignerShortName},
+			{Title: "Published", Value: trivyCVE.PublishedDate.Format(time.RFC3339)},
+		}})
+
+		if len(trivyCVE.CweIDs) > 0 {
+			vulnr.Details[0].Items = append(vulnr.Details[0].Items, Item{Title: "CWE IDs", Value: strings.Join(trivyCVE.CweIDs, ", ")})
+		}
+
+		for _, url := range trivyCVE.References {
+			if url == "" {
+				continue
+			}
+
+			vulnr.References = append(vulnr.References, url)
+		}
+
+		for vendor, cvss := range trivyCVE.CVSS {
+			details := Details{Title: fmt.Sprintf("%s CVSS", vendor), Items: make([]Item, 0)}
+
+			if cvss.V2Score != 0 {
+				details.Items = append(details.Items, Item{Title: "V2 Score", Value: fmt.Sprintf("%.2f", cvss.V2Score)})
+			}
+			if cvss.V3Score != 0 {
+				details.Items = append(details.Items, Item{Title: "V3 Score", Value: fmt.Sprintf("%.2f", cvss.V3Score)})
+			}
+			if cvss.V40Score != 0 {
+				details.Items = append(details.Items, Item{Title: "V40 Score", Value: fmt.Sprintf("%.2f", cvss.V40Score)})
+			}
+			if cvss.V2Vector != "" {
+				details.Items = append(details.Items, Item{Title: "V2 Vector", Value: cvss.V2Vector})
+			}
+			if cvss.V3Vector != "" {
+				details.Items = append(details.Items, Item{Title: "V3 Vector", Value: cvss.V3Vector})
+			}
+			if cvss.V40Vector != "" {
+				details.Items = append(details.Items, Item{Title: "V40 Vector", Value: cvss.V40Vector})
+			}
+
+			vulnr.Details = append(vulnr.Details, details)
+		}
+
+		vulnr.Title = cve.CveMetadata.CveID
+		vulnr.Description = trivyCVE.Description
+	} else {
+		vulnr.Details = append(vulnr.Details, Details{Title: "Additional", Items: []Item{
+			{Title: "Assigner", Value: cve.CveMetadata.AssignerShortName},
+			{Title: "Published", Value: cve.CveMetadata.DatePublished},
+		}})
+
+		for _, ref := range cve.Containers.Cna.References {
+			vulnr.References = append(vulnr.References, ref.URL)
+		}
 	}
 
-	vulnr.Details = append(vulnr.Details, affected)
+	if len(affected.Items) > 0 {
+		vulnr.Details = append(vulnr.Details, affected)
+	}
 
 	return vulnr
 }

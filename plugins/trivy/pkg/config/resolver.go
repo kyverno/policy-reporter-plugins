@@ -16,7 +16,6 @@ import (
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/core"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/cveawg"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/gh"
-	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/kubernetes/leaderelection"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/kubernetes/secrets"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/logging"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/server"
@@ -28,8 +27,8 @@ type Resolver struct {
 	k8sConfig *rest.Config
 	clientset *k8s.Clientset
 
-	secrets      secrets.Client
-	leaderClient *leaderelection.Client
+	secrets secrets.Client
+	db      *vulnr.Database
 }
 
 func (r *Resolver) K8sConfig() (*rest.Config, error) {
@@ -215,13 +214,33 @@ func (r *Resolver) GHClient() *gh.Client {
 	return gh.New()
 }
 
+func (r *Resolver) VulnrDB() (*vulnr.Database, error) {
+	if r.db != nil {
+		return r.db, nil
+	}
+
+	db, err := vulnr.NewDatabase(r.config.Trivy.DBDir)
+	if err != nil {
+		return nil, err
+	}
+
+	r.db = db
+
+	return r.db, nil
+}
+
 func (r *Resolver) VulnrService() (*vulnr.Service, error) {
 	cve, err := r.CVEClient()
 	if err != nil {
 		return nil, err
 	}
 
-	return vulnr.New(cve, r.GHClient(), gocache.New(24*time.Hour, 1*time.Hour)), nil
+	db, err := r.VulnrDB()
+	if err != nil {
+		return nil, err
+	}
+
+	return vulnr.New(cve, db, r.GHClient(), gocache.New(24*time.Hour, 1*time.Hour)), nil
 }
 
 func NewResolver(config *Config) Resolver {
