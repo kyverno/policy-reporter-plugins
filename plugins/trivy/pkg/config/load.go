@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -30,6 +31,13 @@ func Load(c *Config, cfgFile string) error {
 	}
 
 	err := v.Unmarshal(c)
+	if err != nil {
+		return err
+	}
 
-	return err
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		c.Github.Token = token
+	}
+
+	return nil
 }

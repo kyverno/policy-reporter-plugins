@@ -211,7 +211,7 @@ func (r *Resolver) CVEClient() (*cveawg.Client, error) {
 }
 
 func (r *Resolver) GHClient() *gh.Client {
-	return gh.New()
+	return gh.New(r.config.Github.Token)
 }
 
 func (r *Resolver) VulnrDB() (*vulnr.Database, error) {

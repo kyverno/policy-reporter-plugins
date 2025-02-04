@@ -41,8 +41,11 @@ func (c *Client) Get(ctx context.Context, GHSA string) (*github.GlobalSecurityAd
 	}
 }
 
-func New() *Client {
+func New(token string) *Client {
 	client := github.NewClient(api.NewHTTPClient())
+	if token != "" {
+		client = client.WithAuthToken(token)
+	}
 
 	return &Client{client}
 }
