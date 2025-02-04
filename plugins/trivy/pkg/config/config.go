@@ -51,6 +51,10 @@ type Trivy struct {
 	DBDir string `mapstructure:"dbDir"`
 }
 
+type Github struct {
+	Token string `mapstructure:"token"`
+}
+
 type Config struct {
 	KubeConfig clientcmd.ConfigOverrides
 	Namespace  string         `mapstructure:"namespace"`
@@ -59,4 +63,5 @@ type Config struct {
 	Local      bool           `mapstructure:"local"`
 	CoreAPI    CoreAPI        `mapstructure:"core"`
 	Trivy      Trivy          `mapstructure:"trivy"`
+	Github     Github         `mapstructure:"token"`
 }
