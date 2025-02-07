@@ -41,8 +41,21 @@ func (c *Client) Get(ctx context.Context, GHSA string) (*github.GlobalSecurityAd
 	}
 }
 
-func New(token string) *Client {
-	client := github.NewClient(api.NewHTTPClient())
+type ClientOption = func(*http.Client)
+
+func WithLogging() ClientOption {
+	return func(client *http.Client) {
+		client.Transport = api.NewLoggingRoundTripper(client.Transport)
+	}
+}
+
+func New(token string, options ...ClientOption) *Client {
+	httpClient := api.NewHTTPClient()
+	for _, o := range options {
+		o(httpClient)
+	}
+
+	client := github.NewClient(httpClient)
 	if token != "" {
 		client = client.WithAuthToken(token)
 	}

@@ -1,6 +1,8 @@
 package vulnr
 
 import (
+	"fmt"
+
 	"github.com/aquasecurity/trivy-db/pkg/db"
 	"github.com/aquasecurity/trivy-db/pkg/types"
 )
@@ -14,6 +16,10 @@ func (d *Database) Get(id string) (*types.Vulnerability, error) {
 	v, err := d.config.GetVulnerability(id)
 	if err != nil {
 		return nil, err
+	}
+
+	if v.Title == "" && v.Severity == "UNKNOWN" {
+		return nil, fmt.Errorf("vulnr %s not found", id)
 	}
 
 	return &v, err
