@@ -32,6 +32,7 @@ func (h *APIHandler) Register(engine *gin.RouterGroup) error {
 }
 
 func (h *APIHandler) List(ctx *gin.Context) {
+	zap.L().Debug("fetching policy list from policy-reporter api")
 	list, err := h.coreAPI.ListPolicies(ctx, url.Values{"sources": []string{"Trivy Vulnerability"}})
 	if err != nil {
 		zap.L().Error("failed to list policy list from core api", zap.Error(err))
@@ -46,7 +47,7 @@ func (h *APIHandler) List(ctx *gin.Context) {
 	for _, p := range list {
 		p := p
 		g.Go(func() error {
-			v, err := h.service.Get(ctx, p.Name)
+			v, err := h.service.GetDescription(ctx, p.Name)
 			if err != nil {
 				return fmt.Errorf("%s: %w", p.Name, err)
 			}

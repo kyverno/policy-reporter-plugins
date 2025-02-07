@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-github/v58/github"
 
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/cveawg"
+	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/utils"
 )
 
 func MapSecurityAdvisory(ghsa *github.GlobalSecurityAdvisory) *Vulnerability {
@@ -39,6 +40,38 @@ func MapSecurityAdvisory(ghsa *github.GlobalSecurityAdvisory) *Vulnerability {
 			{Title: "Version Range", Value: toValue(v.VulnerableVersionRange)},
 			{Title: "Functions", Value: strings.Join(v.VulnerableFunctions, ",")},
 		}})
+	}
+
+	return vulnr
+}
+
+func MapFromTrivyDB(id string, cve *types.Vulnerability) *Vulnerability {
+	return &Vulnerability{
+		ID:          id,
+		Title:       id,
+		Severity:    cve.Severity,
+		Description: utils.Fallback(cve.Description, cve.Title),
+		Details:     make([]Details, 0),
+		References:  make([]string, 0),
+	}
+}
+
+func MapFromAPI(id string, cve *cveawg.CVE) *Vulnerability {
+	vulnr := &Vulnerability{
+		ID:         id,
+		Title:      id,
+		Details:    make([]Details, 0),
+		References: make([]string, 0),
+	}
+
+	if len(cve.Containers.Cna.Descriptions) == 1 {
+		vulnr.Description = cve.Containers.Cna.Descriptions[0].Value
+	} else {
+		for _, d := range cve.Containers.Cna.Descriptions {
+			if d.Lang == "en" {
+				vulnr.Description = d.Value
+			}
+		}
 	}
 
 	return vulnr
@@ -129,7 +162,9 @@ func MapCVE(cve *cveawg.CVE, trivyCVE *types.Vulnerability) *Vulnerability {
 		}
 
 		vulnr.Title = cve.CveMetadata.CveID
-		vulnr.Description = trivyCVE.Description
+		if trivyCVE.Description != "" {
+			vulnr.Description = trivyCVE.Description
+		}
 	} else {
 		for _, ref := range cve.Containers.Cna.References {
 			vulnr.References = append(vulnr.References, ref.URL)
