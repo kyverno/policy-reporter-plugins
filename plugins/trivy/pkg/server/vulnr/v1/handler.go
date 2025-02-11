@@ -54,7 +54,6 @@ func (h *APIHandler) List(ctx *gin.Context) {
 				return fmt.Errorf("%s: %w", p.Name, err)
 			}
 
-			zap.L().Debug("vulnr details found", zap.String("name", p.Name))
 			v.Category = p.Category
 			v.Severity = p.Severity
 

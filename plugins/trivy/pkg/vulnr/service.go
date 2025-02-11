@@ -47,6 +47,7 @@ func (s *Service) Get(ctx context.Context, name string) (*Vulnerability, error) 
 		trivyCVE, err := s.db.Get(name)
 		if err != nil {
 			zap.L().Warn("unable to load CVE from TrivyDB", zap.String("cve", name), zap.Error(err))
+			return &Vulnerability{ID: name, Title: name}, nil
 		}
 
 		details = MapFromTrivyDB(name, trivyCVE)
