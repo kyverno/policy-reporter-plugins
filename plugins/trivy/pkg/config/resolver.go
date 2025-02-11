@@ -201,6 +201,10 @@ func (r *Resolver) CoreClient(ctx context.Context) (*core.Client, error) {
 }
 
 func (r *Resolver) CVEClient() (*cveawg.Client, error) {
+	if r.config.Trivy.API.Disable {
+		return nil, nil
+	}
+
 	options := []api.ClientOption{}
 
 	if r.config.Logging.API && r.config.Logging.LogLevel < 0 {
@@ -211,6 +215,10 @@ func (r *Resolver) CVEClient() (*cveawg.Client, error) {
 }
 
 func (r *Resolver) GHClient() *gh.Client {
+	if r.config.Github.Disable {
+		return nil
+	}
+
 	options := []gh.ClientOption{}
 
 	if r.config.Logging.API && r.config.Logging.LogLevel < 0 {

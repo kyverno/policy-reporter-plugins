@@ -47,12 +47,18 @@ func (a CoreAPI) FromValues(values secrets.Values) CoreAPI {
 	return a
 }
 
+type API struct {
+	Disable bool `mapstructure:"disable"`
+}
+
 type Trivy struct {
 	DBDir string `mapstructure:"dbDir"`
+	API   API    `mapstructure:"api"`
 }
 
 type Github struct {
-	Token string `mapstructure:"token"`
+	Disable bool   `mapstructure:"disable"`
+	Token   string `mapstructure:"token"`
 }
 
 type Config struct {
