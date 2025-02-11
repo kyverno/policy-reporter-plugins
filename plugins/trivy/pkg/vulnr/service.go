@@ -68,6 +68,7 @@ func (s *Service) GetDescription(ctx context.Context, name string) (*Vulnerabili
 			return nil, err
 		}
 
+		zap.L().Debug("got vulnr details from github api", zap.String("cve", name))
 		details := MapSecurityAdvisory(ghsa)
 		s.cache.Set("list/"+name, details, gocache.DefaultExpiration)
 
@@ -77,6 +78,7 @@ func (s *Service) GetDescription(ctx context.Context, name string) (*Vulnerabili
 	if trivyCVE, err := s.db.Get(name); trivyCVE != nil {
 		details := MapFromTrivyDB(name, trivyCVE)
 		s.cache.Set("list/"+name, details, gocache.DefaultExpiration)
+		zap.L().Debug("got vulnr details from trivy db, skip api call", zap.String("cve", name))
 
 		return details, nil
 	} else {
@@ -96,6 +98,7 @@ func (s *Service) GetDescription(ctx context.Context, name string) (*Vulnerabili
 		return nil, err
 	}
 
+	zap.L().Debug("got vulnr details from CVEAWG API", zap.String("cve", name))
 	details := MapFromAPI(name, cve)
 	s.cache.Set("list/"+name, details, gocache.DefaultExpiration)
 

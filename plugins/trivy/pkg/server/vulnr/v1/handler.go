@@ -40,6 +40,7 @@ func (h *APIHandler) List(ctx *gin.Context) {
 		return
 	}
 
+	zap.L().Debug("fetching policy list from policy-reporter api succeed", zap.Int("results", len(list)))
 	policies := make([]*vulnr.Vulnerability, 0, len(list))
 	mx := new(sync.Mutex)
 
@@ -47,13 +48,13 @@ func (h *APIHandler) List(ctx *gin.Context) {
 	for _, p := range list {
 		p := p
 		g.Go(func() error {
-			zap.L().Debug("fetching finding details", zap.String("name", p.Name))
+			zap.L().Debug("fetching vulnr details", zap.String("name", p.Name))
 			v, err := h.service.GetDescription(ctx, p.Name)
 			if err != nil {
 				return fmt.Errorf("%s: %w", p.Name, err)
 			}
 
-			zap.L().Debug("finding details found", zap.String("name", p.Name))
+			zap.L().Debug("vulnr details found", zap.String("name", p.Name))
 			v.Category = p.Category
 			v.Severity = p.Severity
 
@@ -71,6 +72,7 @@ func (h *APIHandler) List(ctx *gin.Context) {
 		return
 	}
 
+	zap.L().Debug("finished details search", zap.Int("results", len(policies)))
 	results := utils.Map(policies, func(p *vulnr.Vulnerability) api.PolicyListItem {
 		return api.PolicyListItem{
 			Name:        p.ID,
