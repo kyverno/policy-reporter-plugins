@@ -24,14 +24,14 @@ func (s *Service) Get(ctx context.Context, name string) (*Vulnerability, error) 
 	}
 
 	var details *Vulnerability
-	if strings.HasPrefix(name, "GHSA") {
+	if s.ghClient != nil && strings.HasPrefix(name, "GHSA") {
 		ghsa, err := s.ghClient.Get(ctx, name)
 		if err != nil {
 			return nil, err
 		}
 
 		details = MapSecurityAdvisory(ghsa)
-	} else {
+	} else if s.cveAPI != nil {
 		cve, err := s.cveAPI.GetCVE(ctx, name)
 		if err != nil {
 			return nil, err
@@ -43,6 +43,13 @@ func (s *Service) Get(ctx context.Context, name string) (*Vulnerability, error) 
 		}
 
 		details = MapCVE(cve, trivyCVE)
+	} else {
+		trivyCVE, err := s.db.Get(name)
+		if err != nil {
+			zap.L().Warn("unable to load CVE from TrivyDB", zap.String("cve", name), zap.Error(err))
+		}
+
+		details = MapFromTrivyDB(name, trivyCVE)
 	}
 
 	s.cache.Set(name, details, gocache.DefaultExpiration)
@@ -55,7 +62,7 @@ func (s *Service) GetDescription(ctx context.Context, name string) (*Vulnerabili
 		return cached.(*Vulnerability), nil
 	}
 
-	if strings.HasPrefix(name, "GHSA") {
+	if s.ghClient != nil && strings.HasPrefix(name, "GHSA") {
 		ghsa, err := s.ghClient.Get(ctx, name)
 		if err != nil {
 			return nil, err
@@ -74,6 +81,13 @@ func (s *Service) GetDescription(ctx context.Context, name string) (*Vulnerabili
 		return details, nil
 	} else {
 		zap.L().Warn("unable to load CVE from TrivyDB", zap.String("cve", name), zap.Error(err))
+	}
+
+	if s.cveAPI == nil {
+		return &Vulnerability{
+			ID:    name,
+			Title: name,
+		}, nil
 	}
 
 	cve, err := s.cveAPI.GetCVE(ctx, name)
