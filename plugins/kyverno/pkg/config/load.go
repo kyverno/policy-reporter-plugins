@@ -2,10 +2,10 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
 
 func Load(c *Config, cfgFile string) error {
@@ -26,15 +26,18 @@ func Load(c *Config, cfgFile string) error {
 		fmt.Printf("[INFO] No configuration file found: %v\n", err)
 	}
 
-	if err := v.BindEnv("leaderElection.podName", "POD_NAME"); err != nil {
-		zap.L().Warn("failed to bind env POD_NAME")
-	}
-
-	if err := v.BindEnv("namespace", "POD_NAMESPACE"); err != nil {
-		zap.L().Warn("failed to bind env POD_NAMESPACE")
-	}
-
 	err := v.Unmarshal(c)
+	if err != nil {
+		return err
+	}
 
-	return err
+	if c.LeaderElection.PodName == "" {
+		c.LeaderElection.PodName = os.Getenv("POD_NAME")
+	}
+
+	if c.Namespace == "" {
+		c.Namespace = os.Getenv("POD_NAMESPACE")
+	}
+
+	return nil
 }
