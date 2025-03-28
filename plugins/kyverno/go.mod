@@ -1,6 +1,7 @@
 module github.com/kyverno/policy-reporter/kyverno-plugin
 
 go 1.23.1
+toolchain go1.24.1
 
 replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/api
 
@@ -16,7 +17,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/net v0.37.0
+	golang.org/x/net v0.38.0
 	golang.org/x/sync v0.12.0
 	golang.org/x/text v0.23.0
 	gopkg.in/yaml.v2 v2.4.0
