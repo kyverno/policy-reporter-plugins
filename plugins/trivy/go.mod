@@ -8,7 +8,7 @@ require (
 	github.com/aquasecurity/trivy-db v0.0.0-20250203180105-e912a576cd8e
 	github.com/gin-contrib/gzip v1.2.3
 	github.com/gin-contrib/pprof v1.5.2
-	github.com/gin-contrib/zap v1.1.4
+	github.com/gin-contrib/zap v1.1.5
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/go-github/v58 v58.0.0
 	github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0
