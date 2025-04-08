@@ -8,7 +8,7 @@ replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/a
 
 require (
 	github.com/gin-contrib/gzip v1.2.3
-	github.com/gin-contrib/pprof v1.5.2
+	github.com/gin-contrib/pprof v1.5.3
 	github.com/gin-contrib/zap v1.1.5
 	github.com/gin-gonic/gin v1.10.0
 	github.com/itchyny/json2yaml v0.1.4
@@ -76,7 +76,7 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/arch v0.15.0 // indirect
+	golang.org/x/arch v0.16.0 // indirect
 	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/oauth2 v0.25.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
