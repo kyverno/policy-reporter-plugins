@@ -69,5 +69,5 @@ type Config struct {
 	Local      bool           `mapstructure:"local"`
 	CoreAPI    CoreAPI        `mapstructure:"core"`
 	Trivy      Trivy          `mapstructure:"trivy"`
-	Github     Github         `mapstructure:"token"`
+	Github     Github         `mapstructure:"github"`
 }
