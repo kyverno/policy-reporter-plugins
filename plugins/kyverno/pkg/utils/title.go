@@ -5,8 +5,10 @@ import (
 	"golang.org/x/text/language"
 )
 
-var caser = cases.Title(language.English, cases.NoLower)
-
 func Title(s string) string {
-	return caser.String(s)
+	if s == "" {
+		return s
+	}
+
+	return cases.Title(language.English, cases.NoLower).String(s)
 }
