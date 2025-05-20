@@ -9,7 +9,7 @@ require (
 	github.com/gin-contrib/gzip v1.2.3
 	github.com/gin-contrib/pprof v1.5.3
 	github.com/gin-contrib/zap v1.1.5
-	github.com/gin-gonic/gin v1.10.0
+	github.com/gin-gonic/gin v1.10.1
 	github.com/google/go-github/v58 v58.0.0
 	github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
