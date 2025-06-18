@@ -55,7 +55,7 @@ func New(token string, options ...ClientOption) *Client {
 		o(httpClient)
 	}
 
-	client := github.NewClient(httpClient)
+	client := github.NewClientWithEnvProxy(httpClient)
 	if token != "" {
 		client = client.WithAuthToken(token)
 	}
