@@ -20,6 +20,14 @@ func WithBaseURL(url string) ClientOption {
 	}
 }
 
+func WithProxyEnv() ClientOption {
+	return func(client *Client) error {
+		client.http.Transport.(*http.Transport).Proxy = http.ProxyFromEnvironment
+
+		return nil
+	}
+}
+
 func WithBaseAuth(auth BasicAuth) ClientOption {
 	return func(client *Client) error {
 		client.auth = &auth

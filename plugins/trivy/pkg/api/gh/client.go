@@ -49,6 +49,12 @@ func WithLogging() ClientOption {
 	}
 }
 
+func WithProxyEnv() ClientOption {
+	return func(client *http.Client) {
+		client.Transport.(*http.Transport).Proxy = http.ProxyFromEnvironment
+	}
+}
+
 func New(token string, options ...ClientOption) *Client {
 	httpClient := api.NewHTTPClient()
 	for _, o := range options {
