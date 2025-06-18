@@ -46,7 +46,7 @@ func (c *Client) FetchFromTrivyDB(ctx context.Context, name string) (*TrivyCVE, 
 }
 
 func New(options []api.ClientOption) (*Client, error) {
-	options = append(options, api.WithBaseURL(API))
+	options = append(options, api.WithBaseURL(API), api.WithProxyEnv())
 
 	baseClient, err := api.New(options)
 	if err != nil {

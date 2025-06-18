@@ -219,7 +219,7 @@ func (r *Resolver) GHClient() *gh.Client {
 		return nil
 	}
 
-	options := []gh.ClientOption{}
+	options := []gh.ClientOption{gh.WithProxyEnv()}
 
 	if r.config.Logging.API && r.config.Logging.LogLevel < 0 {
 		options = append(options, gh.WithLogging())
