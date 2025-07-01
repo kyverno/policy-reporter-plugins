@@ -1,85 +1,135 @@
 package v1
 
 import (
-	"encoding/json"
-	"fmt"
-
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policies.kyverno.io/v1alpha1"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/util/validation/field"
 )
+
+// ImageVerificationType selects the type of verification algorithm
+// +kubebuilder:validation:Enum=Cosign;SigstoreBundle;Notary
+// +kubebuilder:default=Cosign
+type ImageVerificationType string
+
+// ImageRegistryCredentialsProvidersType provides the list of credential providers required.
+type ImageRegistryCredentialsProvidersType v1alpha1.CredentialsProvidersType
+
+const (
+	Cosign         ImageVerificationType = "Cosign"
+	SigstoreBundle ImageVerificationType = "SigstoreBundle"
+	Notary         ImageVerificationType = "Notary"
+
+	DEFAULT ImageRegistryCredentialsProvidersType = "default"
+	AWS     ImageRegistryCredentialsProvidersType = "amazon"
+	ACR     ImageRegistryCredentialsProvidersType = "azure"
+	GCP     ImageRegistryCredentialsProvidersType = "google"
+	GHCR    ImageRegistryCredentialsProvidersType = "github"
+)
+
+var signatureAlgorithmMap = map[string]bool{
+	"":       true,
+	"sha224": true,
+	"sha256": true,
+	"sha384": true,
+	"sha512": true,
+}
 
 // ImageVerification validates that images that match the specified pattern
 // are signed with the supplied public key. Once the image is verified it is
 // mutated to include the SHA digest retrieved during the registration.
 type ImageVerification struct {
-	// Image is the image name consisting of the registry address, repository, image, and tag.
-	// Wildcards ('*' and '?') are allowed. See: https://kubernetes.io/docs/concepts/containers/images.
+	// Allowed values are Audit or Enforce.
+	// +optional
+	// +kubebuilder:validation:Enum=Audit;Enforce
+	FailureAction *ValidationFailureAction `json:"failureAction,omitempty"`
+
+	// Type specifies the method of signature validation. The allowed options
+	// are Cosign, Sigstore Bundle and Notary. By default Cosign is used if a type is not specified.
+	// +kubebuilder:validation:Optional
+	Type ImageVerificationType `json:"type,omitempty"`
+
 	// Deprecated. Use ImageReferences instead.
 	// +kubebuilder:validation:Optional
-	Image string `json:"image,omitempty" yaml:"image,omitempty"`
+	Image string `json:"image,omitempty"`
 
 	// ImageReferences is a list of matching image reference patterns. At least one pattern in the
 	// list must match the image for the rule to apply. Each image reference consists of a registry
 	// address (defaults to docker.io), repository, image, and tag (defaults to latest).
 	// Wildcards ('*' and '?') are allowed. See: https://kubernetes.io/docs/concepts/containers/images.
 	// +kubebuilder:validation:Optional
-	ImageReferences []string `json:"imageReferences,omitempty" yaml:"imageReferences,omitempty"`
+	ImageReferences []string `json:"imageReferences,omitempty"`
 
-	// Key is the PEM encoded public key that the image or attestation is signed with.
+	// SkipImageReferences is a list of matching image reference patterns that should be skipped.
+	// At least one pattern in the list must match the image for the rule to be skipped. Each image reference
+	// consists of a registry address (defaults to docker.io), repository, image, and tag (defaults to latest).
+	// Wildcards ('*' and '?') are allowed. See: https://kubernetes.io/docs/concepts/containers/images.
+	// +kubebuilder:validation:Optional
+	SkipImageReferences []string `json:"skipImageReferences,omitempty"`
+
 	// Deprecated. Use StaticKeyAttestor instead.
-	Key string `json:"key,omitempty" yaml:"key,omitempty"`
+	Key string `json:"key,omitempty"`
 
-	// Roots is the PEM encoded Root certificate chain used for keyless signing
 	// Deprecated. Use KeylessAttestor instead.
-	Roots string `json:"roots,omitempty" yaml:"roots,omitempty"`
+	Roots string `json:"roots,omitempty"`
 
-	// Subject is the identity used for keyless signing, for example an email address
 	// Deprecated. Use KeylessAttestor instead.
-	Subject string `json:"subject,omitempty" yaml:"subject,omitempty"`
+	Subject string `json:"subject,omitempty"`
 
-	// Issuer is the certificate issuer used for keyless signing.
 	// Deprecated. Use KeylessAttestor instead.
-	Issuer string `json:"issuer,omitempty" yaml:"issuer,omitempty"`
+	Issuer string `json:"issuer,omitempty"`
 
-	// AdditionalExtensions are certificate-extensions used for keyless signing.
 	// Deprecated.
-	AdditionalExtensions map[string]string `json:"additionalExtensions,omitempty" yaml:"additionalExtensions,omitempty"`
+	AdditionalExtensions map[string]string `json:"additionalExtensions,omitempty"`
 
 	// Attestors specified the required attestors (i.e. authorities)
 	// +kubebuilder:validation:Optional
-	Attestors []AttestorSet `json:"attestors,omitempty" yaml:"attestors,omitempty"`
+	Attestors []AttestorSet `json:"attestors,omitempty"`
 
 	// Attestations are optional checks for signed in-toto Statements used to verify the image.
 	// See https://github.com/in-toto/attestation. Kyverno fetches signed attestations from the
 	// OCI registry and decodes them into a list of Statement declarations.
-	Attestations []Attestation `json:"attestations,omitempty" yaml:"attestations,omitempty"`
+	Attestations []Attestation `json:"attestations,omitempty"`
 
-	// Annotations are used for image verification.
-	// Every specified key-value pair must exist and match in the verified payload.
-	// The payload may contain other key-value pairs.
 	// Deprecated. Use annotations per Attestor instead.
-	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 
 	// Repository is an optional alternate OCI repository to use for image signatures and attestations that match this rule.
 	// If specified Repository will override the default OCI image repository configured for the installation.
 	// The repository can also be overridden per Attestor or Attestation.
-	Repository string `json:"repository,omitempty" yaml:"repository,omitempty"`
+	Repository string `json:"repository,omitempty"`
+
+	// CosignOCI11 enables the experimental OCI 1.1 behaviour in cosign image verification.
+	// Defaults to false.
+	// +optional
+	CosignOCI11 bool `json:"cosignOCI11,omitempty"`
 
 	// MutateDigest enables replacement of image tags with digests.
 	// Defaults to true.
 	// +kubebuilder:default=true
 	// +kubebuilder:validation:Optional
-	MutateDigest bool `json:"mutateDigest" yaml:"mutateDigest"`
+	MutateDigest bool `json:"mutateDigest"`
 
 	// VerifyDigest validates that images have a digest.
 	// +kubebuilder:default=true
 	// +kubebuilder:validation:Optional
-	VerifyDigest bool `json:"verifyDigest" yaml:"verifyDigest"`
+	VerifyDigest bool `json:"verifyDigest"`
+
+	// Validation checks conditions across multiple image
+	// verification attestations or context entries
+	Validation ValidateImageVerification `json:"validate,omitempty"`
 
 	// Required validates that images are verified i.e. have matched passed a signature or attestation check.
 	// +kubebuilder:default=true
 	// +kubebuilder:validation:Optional
-	Required bool `json:"required" yaml:"required"`
+	Required bool `json:"required"`
+
+	// ImageRegistryCredentials provides credentials that will be used for authentication with registry.
+	// +kubebuilder:validation:Optional
+	ImageRegistryCredentials *ImageRegistryCredentials `json:"imageRegistryCredentials,omitempty"`
+
+	// UseCache enables caching of image verify responses for this rule.
+	// +kubebuilder:default=true
+	// +kubebuilder:validation:Optional
+	UseCache bool `json:"useCache"`
 }
 
 type AttestorSet struct {
@@ -88,40 +138,44 @@ type AttestorSet struct {
 	// value N, then N must be less than or equal to the size of entries, and at least N entries must match.
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Minimum:=1
-	Count *int `json:"count,omitempty" yaml:"count,omitempty"`
+	Count *int `json:"count,omitempty"`
 
 	// Entries contains the available attestors. An attestor can be a static key,
 	// attributes for keyless verification, or a nested attestor declaration.
 	// +kubebuilder:validation:Optional
-	Entries []Attestor `json:"entries,omitempty" yaml:"entries,omitempty"`
+	Entries []Attestor `json:"entries,omitempty"`
 }
 
 type Attestor struct {
-	// Keys specifies one or more public keys
+	// Keys specifies one or more public keys.
 	// +kubebuilder:validation:Optional
-	Keys *StaticKeyAttestor `json:"keys,omitempty" yaml:"keys,omitempty"`
+	Keys *StaticKeyAttestor `json:"keys,omitempty"`
 
-	// Certificates specifies one or more certificates
+	// Certificates specifies one or more certificates.
 	// +kubebuilder:validation:Optional
-	Certificates *CertificateAttestor `json:"certificates,omitempty" yaml:"certificates,omitempty"`
+	Certificates *CertificateAttestor `json:"certificates,omitempty"`
 
 	// Keyless is a set of attribute used to verify a Sigstore keyless attestor.
 	// See https://github.com/sigstore/cosign/blob/main/KEYLESS.md.
 	// +kubebuilder:validation:Optional
-	Keyless *KeylessAttestor `json:"keyless,omitempty" yaml:"keyless,omitempty"`
+	Keyless *KeylessAttestor `json:"keyless,omitempty"`
 
-	// Attestor is a nested AttestorSet used to specify a more complex set of match authorities
+	// Attestor is a nested set of Attestor used to specify a more complex set of match authorities.
 	// +kubebuilder:validation:Optional
-	Attestor *apiextv1.JSON `json:"attestor,omitempty" yaml:"attestor,omitempty"`
+	Attestor *apiextv1.JSON `json:"attestor,omitempty"`
 
 	// Annotations are used for image verification.
 	// Every specified key-value pair must exist and match in the verified payload.
 	// The payload may contain other key-value pairs.
-	Annotations map[string]string `json:"annotations,omitempty" yaml:"annotations,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 
 	// Repository is an optional alternate OCI repository to use for signatures and attestations that match this rule.
 	// If specified Repository will override other OCI image repository locations for this Attestor.
-	Repository string `json:"repository,omitempty" yaml:"repository,omitempty"`
+	Repository string `json:"repository,omitempty"`
+
+	// Specify signature algorithm for public keys. Supported values are sha224, sha256, sha384 and sha512.
+	// +kubebuilder:default=sha256
+	SignatureAlgorithm string `json:"signatureAlgorithm,omitempty"`
 }
 
 type StaticKeyAttestor struct {
@@ -133,284 +187,177 @@ type StaticKeyAttestor struct {
 	// verification, (see https://github.com/sigstore/cosign/blob/main/KMS.md#kubernetes-secret).
 	// When multiple keys are specified each key is processed as a separate staticKey entry
 	// (.attestors[*].entries.keys) within the set of attestors and the count is applied across the keys.
-	PublicKeys string `json:"publicKeys,omitempty" yaml:"publicKeys,omitempty"`
+	PublicKeys string `json:"publicKeys,omitempty"`
 
-	// Specify signature algorithm for public keys. Supported values are sha256 and sha512
+	// Deprecated. Use attestor.signatureAlgorithm instead.
 	// +kubebuilder:default=sha256
-	SignatureAlgorithm string `json:"signatureAlgorithm,omitempty" yaml:"signatureAlgorithm,omitempty"`
+	SignatureAlgorithm string `json:"signatureAlgorithm,omitempty"`
 
 	// KMS provides the URI to the public key stored in a Key Management System. See:
 	// https://github.com/sigstore/cosign/blob/main/KMS.md
-	KMS string `json:"kms,omitempty" yaml:"kms,omitempty"`
+	KMS string `json:"kms,omitempty"`
 
 	// Reference to a Secret resource that contains a public key
-	Secret *SecretReference `json:"secret,omitempty" yaml:"secret,omitempty"`
+	Secret *SecretReference `json:"secret,omitempty"`
 
-	// Rekor provides configuration for the Rekor transparency log service. If the value is nil,
-	// Rekor is not checked. If an empty object is provided the public instance of
-	// Rekor (https://rekor.sigstore.dev) is used.
+	// Rekor provides configuration for the Rekor transparency log service. If an empty object
+	// is provided the public instance of Rekor (https://rekor.sigstore.dev) is used.
 	// +kubebuilder:validation:Optional
-	Rekor *CTLog `json:"rekor,omitempty" yaml:"rekor,omitempty"`
+	Rekor *Rekor `json:"rekor,omitempty"`
+
+	// CTLog (certificate timestamp log) provides a configuration for validation of Signed Certificate
+	// Timestamps (SCTs). If the value is unset, the default behavior by Cosign is used.
+	// +kubebuilder:validation:Optional
+	CTLog *CTLog `json:"ctlog,omitempty"`
 }
 
 type SecretReference struct {
 	// Name of the secret. The provided secret must contain a key named cosign.pub.
-	Name string `json:"name" yaml:"name"`
+	Name string `json:"name"`
 
 	// Namespace name where the Secret exists.
-	Namespace string `json:"namespace" yaml:"namespace"`
+	Namespace string `json:"namespace"`
 }
 
 type CertificateAttestor struct {
-	// Certificate is an optional PEM encoded public certificate.
+	// Cert is an optional PEM-encoded public certificate.
 	// +kubebuilder:validation:Optional
-	Certificate string `json:"cert,omitempty" yaml:"cert,omitempty"`
+	Certificate string `json:"cert,omitempty"`
 
-	// CertificateChain is an optional PEM encoded set of certificates used to verify
+	// CertChain is an optional PEM encoded set of certificates used to verify.
 	// +kubebuilder:validation:Optional
-	CertificateChain string `json:"certChain,omitempty" yaml:"certChain,omitempty"`
+	CertificateChain string `json:"certChain,omitempty"`
 
-	// Rekor provides configuration for the Rekor transparency log service. If the value is nil,
-	// Rekor is not checked. If an empty object is provided the public instance of
-	// Rekor (https://rekor.sigstore.dev) is used.
+	// Rekor provides configuration for the Rekor transparency log service. If an empty object
+	// is provided the public instance of Rekor (https://rekor.sigstore.dev) is used.
 	// +kubebuilder:validation:Optional
-	Rekor *CTLog `json:"rekor,omitempty" yaml:"rekor,omitempty"`
+	Rekor *Rekor `json:"rekor,omitempty"`
+
+	// CTLog (certificate timestamp log) provides a configuration for validation of Signed Certificate
+	// Timestamps (SCTs). If the value is unset, the default behavior by Cosign is used.
+	// +kubebuilder:validation:Optional
+	CTLog *CTLog `json:"ctlog,omitempty"`
 }
 
 type KeylessAttestor struct {
-	// Rekor provides configuration for the Rekor transparency log service. If the value is nil,
-	// Rekor is not checked and a root certificate chain is expected instead. If an empty object
+	// Rekor provides configuration for the Rekor transparency log service. If an empty object
 	// is provided the public instance of Rekor (https://rekor.sigstore.dev) is used.
 	// +kubebuilder:validation:Optional
-	Rekor *CTLog `json:"rekor,omitempty" yaml:"rekor,omitempty"`
+	Rekor *Rekor `json:"rekor,omitempty"`
+
+	// CTLog (certificate timestamp log) provides a configuration for validation of Signed Certificate
+	// Timestamps (SCTs). If the value is unset, the default behavior by Cosign is used.
+	// +kubebuilder:validation:Optional
+	CTLog *CTLog `json:"ctlog,omitempty"`
 
 	// Issuer is the certificate issuer used for keyless signing.
 	// +kubebuilder:validation:Optional
-	Issuer string `json:"issuer,omitempty" yaml:"issuer,omitempty"`
+	Issuer string `json:"issuer,omitempty"`
 
-	// Subject is the verified identity used for keyless signing, for example the email address
+	// IssuerRegExp is the regular expression to match certificate issuer used for keyless signing.
 	// +kubebuilder:validation:Optional
-	Subject string `json:"subject,omitempty" yaml:"subject,omitempty"`
+	IssuerRegExp string `json:"issuerRegExp,omitempty"`
+
+	// Subject is the verified identity used for keyless signing, for example the email address.
+	// +kubebuilder:validation:Optional
+	Subject string `json:"subject,omitempty"`
+
+	// SubjectRegExp is the regular expression to match identity used for keyless signing, for example the email address.
+	// +kubebuilder:validation:Optional
+	SubjectRegExp string `json:"subjectRegExp,omitempty"`
 
 	// Roots is an optional set of PEM encoded trusted root certificates.
 	// If not provided, the system roots are used.
 	// +kubebuilder:validation:Optional
-	Roots string `json:"roots,omitempty" yaml:"roots,omitempty"`
+	Roots string `json:"roots,omitempty"`
 
 	// AdditionalExtensions are certificate-extensions used for keyless signing.
 	// +kubebuilder:validation:Optional
-	AdditionalExtensions map[string]string `json:"additionalExtensions,omitempty" yaml:"additionalExtensions,omitempty"`
+	AdditionalExtensions map[string]string `json:"additionalExtensions,omitempty"`
+}
+
+type Rekor struct {
+	// URL is the address of the transparency log. Defaults to the public Rekor log instance https://rekor.sigstore.dev.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:Default:=https://rekor.sigstore.dev
+	URL string `json:"url"`
+
+	// RekorPubKey is an optional PEM-encoded public key to use for a custom Rekor.
+	// If set, this will be used to validate transparency log signatures from a custom Rekor.
+	// +kubebuilder:validation:Optional
+	RekorPubKey string `json:"pubkey,omitempty"`
+
+	// IgnoreTlog skips transparency log verification.
+	// +kubebuilder:validation:Optional
+	IgnoreTlog bool `json:"ignoreTlog,omitempty"`
 }
 
 type CTLog struct {
-	// URL is the address of the transparency log. Defaults to the public log https://rekor.sigstore.dev.
-	// +kubebuilder:validation:Required
-	// +kubebuilder:Default:=https://rekor.sigstore.dev
-	URL string `json:"url" yaml:"url"`
+	// IgnoreSCT defines whether to use the Signed Certificate Timestamp (SCT) log to check for a certificate
+	// timestamp. Default is false. Set to true if this was opted out during signing.
+	// +kubebuilder:validation:Optional
+	IgnoreSCT bool `json:"ignoreSCT,omitempty"`
+
+	// PubKey, if set, is used to validate SCTs against a custom source.
+	// +kubebuilder:validation:Optional
+	CTLogPubKey string `json:"pubkey,omitempty"`
+
+	// TSACertChain, if set, is the PEM-encoded certificate chain file for the RFC3161 timestamp authority. Must
+	// contain the root CA certificate. Optionally may contain intermediate CA certificates, and
+	// may contain the leaf TSA certificate if not present in the timestamurce.
+	// +kubebuilder:validation:Optional
+	TSACertChain string `json:"tsaCertChain,omitempty"`
 }
 
 // Attestation are checks for signed in-toto Statements that are used to verify the image.
 // See https://github.com/in-toto/attestation. Kyverno fetches signed attestations from the
 // OCI registry and decodes them into a list of Statements.
 type Attestation struct {
-	// PredicateType defines the type of Predicate contained within the Statement.
-	// +kubebuilder:validation:Required
-	PredicateType string `json:"predicateType" yaml:"predicateType"`
+	// Name is the variable name.
+	Name string `json:"name,omitempty"`
 
-	// Attestors specify the required attestors (i.e. authorities)
+	// Deprecated in favour of 'Type', to be removed soon
 	// +kubebuilder:validation:Optional
-	Attestors []AttestorSet `json:"attestors" yaml:"attestors"`
+	PredicateType string `json:"predicateType"`
+
+	// Type defines the type of attestation contained within the Statement.
+	// +kubebuilder:validation:Optional
+	Type string `json:"type"`
+
+	// Attestors specify the required attestors (i.e. authorities).
+	// +kubebuilder:validation:Optional
+	Attestors []AttestorSet `json:"attestors"`
 
 	// Conditions are used to verify attributes within a Predicate. If no Conditions are specified
 	// the attestation check is satisfied as long there are predicates that match the predicate type.
 	// +kubebuilder:validation:Optional
-	Conditions []AnyAllConditions `json:"conditions,omitempty" yaml:"conditions,omitempty"`
+	Conditions []AnyAllConditions `json:"conditions,omitempty"`
 }
 
-// Validate implements programmatic validation
-func (iv *ImageVerification) Validate(path *field.Path) (errs field.ErrorList) {
-	copy := iv.Convert()
+type ImageRegistryCredentials struct {
+	// AllowInsecureRegistry allows insecure access to a registry.
+	// +kubebuilder:validation:Optional
+	AllowInsecureRegistry bool `json:"allowInsecureRegistry,omitempty"`
 
-	if len(copy.ImageReferences) == 0 {
-		errs = append(errs, field.Invalid(path, iv, "An image reference is required"))
-	}
+	// Providers specifies a list of OCI Registry names, whose authentication providers are provided.
+	// It can be of one of these values: default,google,azure,amazon,github.
+	// +kubebuilder:validation:Optional
+	Providers []ImageRegistryCredentialsProvidersType `json:"providers,omitempty"`
 
-	asPath := path.Child("attestations")
-	for i, attestation := range copy.Attestations {
-		attestationErrors := attestation.Validate(asPath.Index(i))
-		errs = append(errs, attestationErrors...)
-	}
-
-	attestorsPath := path.Child("attestors")
-	for i, as := range copy.Attestors {
-		attestorErrors := as.Validate(attestorsPath.Index(i))
-		errs = append(errs, attestorErrors...)
-	}
-
-	return errs
+	// Secrets specifies a list of secrets that are provided for credentials.
+	// Secrets must live in the Kyverno namespace.
+	// +kubebuilder:validation:Optional
+	Secrets []string `json:"secrets,omitempty"`
 }
 
-func (a *Attestation) Validate(path *field.Path) (errs field.ErrorList) {
-	if len(a.Attestors) == 0 {
-		return
-	}
+// ValidateImageVerification checks conditions across multiple image
+// verification attestations or context entries
+type ValidateImageVerification struct {
+	// Message specifies a custom message to be displayed on failure.
+	// +optional
+	Message string `json:"message,omitempty"`
 
-	attestorsPath := path.Child("attestors")
-	for i, as := range a.Attestors {
-		attestorErrors := as.Validate(attestorsPath.Index(i))
-		errs = append(errs, attestorErrors...)
-	}
-	return errs
-}
-
-func (as *AttestorSet) Validate(path *field.Path) (errs field.ErrorList) {
-	return validateAttestorSet(as, path)
-}
-
-func validateAttestorSet(as *AttestorSet, path *field.Path) (errs field.ErrorList) {
-	if as.Count != nil {
-		if *as.Count > len(as.Entries) {
-			errs = append(errs, field.Invalid(path, as, "Count cannot exceed length of entries"))
-		}
-	}
-
-	if len(as.Entries) == 0 {
-		errs = append(errs, field.Invalid(path, as, "An entry is required"))
-	}
-
-	entriesPath := path.Child("entries")
-	for i, e := range as.Entries {
-		attestorErrors := e.Validate(entriesPath.Index(i))
-		errs = append(errs, attestorErrors...)
-	}
-
-	return errs
-}
-
-func (a *Attestor) Validate(path *field.Path) (errs field.ErrorList) {
-	if (a.Keys != nil && (a.Certificates != nil || a.Keyless != nil || a.Attestor != nil)) ||
-		(a.Certificates != nil && (a.Keys != nil || a.Keyless != nil || a.Attestor != nil)) ||
-		(a.Keyless != nil && (a.Certificates != nil || a.Keys != nil || a.Attestor != nil)) ||
-		(a.Attestor != nil && (a.Certificates != nil || a.Keys != nil || a.Keyless != nil)) ||
-		(a.Keys == nil && a.Certificates == nil && a.Keyless == nil && a.Attestor == nil) {
-		errs = append(errs, field.Invalid(path, a, "keys, certificates, keyless, or a nested attestor is required"))
-	}
-
-	if a.Keys != nil {
-		staticKeyPath := path.Child("keys")
-		staticKeyErrors := a.Keys.Validate(staticKeyPath)
-		errs = append(errs, staticKeyErrors...)
-	}
-
-	if a.Certificates != nil {
-		certificatesPath := path.Child("certificates")
-		certificatesErrors := a.Certificates.Validate(certificatesPath)
-		errs = append(errs, certificatesErrors...)
-	}
-
-	if a.Keyless != nil {
-		keylessPath := path.Child("keyless")
-		keylessErrors := a.Keyless.Validate(keylessPath)
-		errs = append(errs, keylessErrors...)
-	}
-
-	if a.Attestor != nil {
-		attestorPath := path.Child("attestor")
-		attestorSet, err := AttestorSetUnmarshal(a.Attestor)
-		if err != nil {
-			fieldErr := field.Invalid(attestorPath, a.Attestor, err.Error())
-			errs = append(errs, fieldErr)
-		} else {
-			attestorErrors := validateAttestorSet(attestorSet, attestorPath)
-			errs = append(errs, attestorErrors...)
-		}
-	}
-
-	return errs
-}
-
-func AttestorSetUnmarshal(o *apiextv1.JSON) (*AttestorSet, error) {
-	var as AttestorSet
-	if err := json.Unmarshal(o.Raw, &as); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal attestor set %s: %w", string(o.Raw), err)
-	}
-
-	return &as, nil
-}
-
-func (ska *StaticKeyAttestor) Validate(path *field.Path) (errs field.ErrorList) {
-	if ska.PublicKeys == "" && ska.KMS == "" && ska.Secret == nil {
-		errs = append(errs, field.Invalid(path, ska, "A public key, kms key or secret is required"))
-	}
-	if ska.PublicKeys != "" && ska.SignatureAlgorithm != "" && ska.SignatureAlgorithm != "sha256" && ska.SignatureAlgorithm != "sha512" {
-		errs = append(errs, field.Invalid(path, ska, "Invalid signature algorithm provided"))
-	}
-	return errs
-}
-
-func (ca *CertificateAttestor) Validate(path *field.Path) (errs field.ErrorList) {
-	if ca.Certificate == "" && ca.CertificateChain == "" {
-		errs = append(errs, field.Invalid(path, ca, "cert or certChain required"))
-	}
-
-	return errs
-}
-
-func (ka *KeylessAttestor) Validate(path *field.Path) (errs field.ErrorList) {
-	if ka.Rekor == nil && ka.Roots == "" {
-		errs = append(errs, field.Invalid(path, ka, "Either Rekor URL or roots are required"))
-	}
-
-	if ka.Rekor != nil && ka.Rekor.URL == "" {
-		errs = append(errs, field.Invalid(path, ka, "An URL is required"))
-	}
-
-	return errs
-}
-
-func (iv *ImageVerification) Convert() *ImageVerification {
-	if iv.Image == "" && iv.Key == "" && iv.Issuer == "" {
-		return iv
-	}
-
-	copy := iv.DeepCopy()
-	copy.Image = ""
-	copy.Issuer = ""
-	copy.Subject = ""
-	copy.Roots = ""
-
-	if iv.Image != "" {
-		copy.ImageReferences = append(copy.ImageReferences, iv.Image)
-	}
-
-	attestorSet := AttestorSet{}
-	if len(iv.Annotations) > 0 || iv.Key != "" || iv.Issuer != "" {
-		attestor := Attestor{
-			Annotations: iv.Annotations,
-		}
-
-		if iv.Key != "" {
-			attestor.Keys = &StaticKeyAttestor{
-				PublicKeys: iv.Key,
-			}
-		} else if iv.Issuer != "" {
-			attestor.Keyless = &KeylessAttestor{
-				Issuer:  iv.Issuer,
-				Subject: iv.Subject,
-				Roots:   iv.Roots,
-			}
-		}
-
-		attestorSet.Entries = append(attestorSet.Entries, attestor)
-		if len(iv.Attestations) > 0 {
-			for i := range iv.Attestations {
-				copy.Attestations[i].Attestors = append(copy.Attestations[i].Attestors, attestorSet)
-			}
-		} else {
-			copy.Attestors = append(copy.Attestors, attestorSet)
-		}
-	}
-
-	copy.Attestations = iv.Attestations
-	return copy
+	// Deny defines conditions used to pass or fail a validation rule.
+	// +optional
+	Deny *Deny `json:"deny,omitempty"`
 }

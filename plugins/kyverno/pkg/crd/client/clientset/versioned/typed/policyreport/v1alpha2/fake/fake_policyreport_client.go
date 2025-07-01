@@ -19,10 +19,9 @@ limitations under the License.
 package fake
 
 import (
+	v1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
-
-	v1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2"
 )
 
 type FakeWgpolicyk8sV1alpha2 struct {
@@ -30,11 +29,11 @@ type FakeWgpolicyk8sV1alpha2 struct {
 }
 
 func (c *FakeWgpolicyk8sV1alpha2) ClusterPolicyReports() v1alpha2.ClusterPolicyReportInterface {
-	return &FakeClusterPolicyReports{c}
+	return newFakeClusterPolicyReports(c)
 }
 
 func (c *FakeWgpolicyk8sV1alpha2) PolicyReports(namespace string) v1alpha2.PolicyReportInterface {
-	return &FakePolicyReports{c, namespace}
+	return newFakePolicyReports(c, namespace)
 }
 
 // RESTClient returns a RESTClient that is used to communicate
