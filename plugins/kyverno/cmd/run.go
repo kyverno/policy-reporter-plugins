@@ -11,7 +11,9 @@ import (
 
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/config"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server"
-	v1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server/v1"
+	ivpolv1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server/ivpol/v1"
+	polv1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server/v1"
+	vpolv1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server/vpol/v1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
 
@@ -37,13 +39,25 @@ func newRunCMD() *cobra.Command {
 				return err
 			}
 
+			vpols, err := resolver.VPOLClient()
+			if err != nil {
+				return err
+			}
+
+			ivpols, err := resolver.IVPOLClient()
+			if err != nil {
+				return err
+			}
+
 			coreAPI, err := resolver.CoreClient(cmd.Context())
 			if err != nil {
 				return err
 			}
 
 			server, err := resolver.Server(cmd.Context(), []server.ServerOption{
-				v1.WithAPI(client, coreAPI),
+				polv1.WithAPI(client, coreAPI),
+				vpolv1.WithAPI(vpols, coreAPI),
+				ivpolv1.WithAPI(ivpols, coreAPI),
 				server.WithPort(c.Server.Port),
 			})
 			if err != nil {

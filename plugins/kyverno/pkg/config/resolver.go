@@ -14,9 +14,12 @@ import (
 
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
 	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v1"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1alpha1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/events"
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno/ivpol"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno/pol"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno/vpol"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/leaderelection"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/policyreport"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/secrets"
@@ -34,7 +37,9 @@ type Resolver struct {
 	secrets       secrets.Client
 	leaderClient  *leaderelection.Client
 	polrClient    policyreport.Client
-	kyvernoClient kyverno.Client
+	kyvernoClient pol.Client
+	vpolClient    vpol.Client
+	ivpolClient   ivpol.Client
 	eventClient   violation.EventClient
 }
 
@@ -132,7 +137,7 @@ func (r *Resolver) KyvernoV1Client() (kyvernov1.KyvernoV1Interface, error) {
 	return client, nil
 }
 
-func (r *Resolver) KyvernoClient() (kyverno.Client, error) {
+func (r *Resolver) KyvernoClient() (pol.Client, error) {
 	if r.kyvernoClient != nil {
 		return r.kyvernoClient, nil
 	}
@@ -157,9 +162,83 @@ func (r *Resolver) KyvernoClient() (kyverno.Client, error) {
 		return nil, err
 	}
 
-	r.kyvernoClient = kyverno.NewClient(m, d, k, c, gocache.New(15*time.Second, 5*time.Second))
+	r.kyvernoClient = pol.NewClient(m, d, k, c, gocache.New(15*time.Second, 5*time.Second))
 
 	return r.kyvernoClient, nil
+}
+
+func (r *Resolver) PoliciesV1Alpha1Client() (*v1alpha1.PoliciesV1alpha1Client, error) {
+	k8sConfig, err := r.K8sConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := v1alpha1.NewForConfig(k8sConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func (r *Resolver) VPOLClient() (vpol.Client, error) {
+	if r.vpolClient != nil {
+		return r.vpolClient, nil
+	}
+
+	m, err := r.MetadataClient()
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := r.DynamicClient()
+	if err != nil {
+		return nil, err
+	}
+
+	k, err := r.PoliciesV1Alpha1Client()
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := r.CoreClient(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	r.vpolClient = vpol.NewClient(m, d, k.ValidatingPolicies(), c, gocache.New(15*time.Second, 5*time.Second))
+
+	return r.vpolClient, nil
+}
+
+func (r *Resolver) IVPOLClient() (ivpol.Client, error) {
+	if r.ivpolClient != nil {
+		return r.ivpolClient, nil
+	}
+
+	m, err := r.MetadataClient()
+	if err != nil {
+		return nil, err
+	}
+
+	d, err := r.DynamicClient()
+	if err != nil {
+		return nil, err
+	}
+
+	k, err := r.PoliciesV1Alpha1Client()
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := r.CoreClient(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	r.ivpolClient = ivpol.NewClient(m, d, k.ImageValidatingPolicies(), c, gocache.New(15*time.Second, 5*time.Second))
+
+	return r.ivpolClient, nil
 }
 
 func (r *Resolver) Logger() *zap.Logger {

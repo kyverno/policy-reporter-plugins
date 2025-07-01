@@ -18,7 +18,7 @@ import (
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
 	v1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno/pol"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/utils"
 )
@@ -28,7 +28,7 @@ var (
 )
 
 type APIHandler struct {
-	client  kyverno.Client
+	client  pol.Client
 	coreAPI *core.Client
 }
 
@@ -123,7 +123,7 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 				}
 
 				if cl, ok := rule.Props["controlsJSON"]; ok {
-					var controls []kyverno.Control
+					var controls []pol.Control
 					err := json.Unmarshal([]byte(cl), &controls)
 					if err != nil {
 						zap.L().Error("failed to unmarshal control", zap.Error(err), zap.String("control", cl))
@@ -220,11 +220,11 @@ func (h *APIHandler) Exception(ctx *gin.Context) {
 	})
 }
 
-func NewHandler(client kyverno.Client, coreAPI *core.Client) *APIHandler {
+func NewHandler(client pol.Client, coreAPI *core.Client) *APIHandler {
 	return &APIHandler{client, coreAPI}
 }
 
-func WithAPI(client kyverno.Client, coreAPI *core.Client) server.ServerOption {
+func WithAPI(client pol.Client, coreAPI *core.Client) server.ServerOption {
 	return func(s *server.Server) error {
 		return s.Register("v1", NewHandler(client, coreAPI))
 	}

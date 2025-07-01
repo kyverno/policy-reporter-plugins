@@ -16,7 +16,7 @@ import (
 
 	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
 	kubernetes "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/events"
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno/pol"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
 
@@ -53,8 +53,8 @@ var (
 			Name: "require-request-and-limits",
 			UID:  types.UID("1f2b937f-8ae9-4071-aa37-4d35c87965a3"),
 			Annotations: map[string]string{
-				kyverno.AnnotationPolicyCategory: "Best Practices",
-				kyverno.AnnotationPolicySeverity: "medium",
+				pol.AnnotationPolicyCategory: "Best Practices",
+				pol.AnnotationPolicySeverity: "medium",
 			},
 			CreationTimestamp: v1.Now(),
 		},
@@ -62,7 +62,7 @@ var (
 			Rules: []kyvernov1.Rule{
 				{
 					Name: "require-resource-request",
-					Validation: kyvernov1.Validation{
+					Validation: &kyvernov1.Validation{
 						Message: "test message",
 					},
 				},
@@ -91,7 +91,7 @@ func (c *policyFakeClient) GetCRD(ctx context.Context, name, namespace string) (
 	return &basePolicy, nil
 }
 
-func NewPolicyFakeCilent() kyverno.Client {
+func NewPolicyFakeCilent() pol.Client {
 	return &policyFakeClient{}
 }
 
@@ -289,8 +289,8 @@ func Test_UnknownPolicy(t *testing.T) {
 }
 
 func checkViolationPolicy(violation violation.PolicyViolation, t *testing.T) {
-	category := basePolicy.GetAnnotations()[kyverno.AnnotationPolicyCategory]
-	severity := basePolicy.GetAnnotations()[kyverno.AnnotationPolicySeverity]
+	category := basePolicy.GetAnnotations()[pol.AnnotationPolicyCategory]
+	severity := basePolicy.GetAnnotations()[pol.AnnotationPolicySeverity]
 	rule := basePolicy.GetSpec().Rules[0]
 
 	if violation.Policy.Category != category {

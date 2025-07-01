@@ -8,12 +8,7 @@ import (
 // +kubebuilder:object:generate=false
 type PolicyInterface interface {
 	metav1.Object
-	HasAutoGenAnnotation() bool
-	IsNamespaced() bool
 	GetSpec() *Spec
 	GetStatus() *PolicyStatus
 	GetKind() string
-	SetKind(string)
-	GetAPIVersion() string
-	SetAPIVersion(string)
 }

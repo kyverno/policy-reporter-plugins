@@ -35,72 +35,81 @@ func (a ValidationFailureAction) IsValid() bool {
 
 type ValidationFailureActionOverride struct {
 	// +kubebuilder:validation:Enum=audit;enforce;Audit;Enforce
-	Action            ValidationFailureAction `json:"action,omitempty" yaml:"action,omitempty"`
-	Namespaces        []string                `json:"namespaces,omitempty" yaml:"namespaces,omitempty"`
-	NamespaceSelector *metav1.LabelSelector   `json:"namespaceSelector,omitempty" yaml:"namespaceSelector,omitempty"`
+	Action            ValidationFailureAction `json:"action,omitempty"`
+	Namespaces        []string                `json:"namespaces,omitempty"`
+	NamespaceSelector *metav1.LabelSelector   `json:"namespaceSelector,omitempty"`
 }
 
 // Spec contains a list of Rule instances and other policy controls.
 type Spec struct {
 	// Rules is a list of Rule instances. A Policy contains multiple rules and
 	// each rule can validate, mutate, or generate resources.
-	Rules []Rule `json:"rules,omitempty" yaml:"rules,omitempty"`
+	Rules []Rule `json:"rules,omitempty"`
 
 	// ApplyRules controls how rules in a policy are applied. Rule are processed in
 	// the order of declaration. When set to `One` processing stops after a rule has
 	// been applied i.e. the rule matches and results in a pass, fail, or error. When
 	// set to `All` all rules in the policy are processed. The default is `All`.
 	// +optional
-	ApplyRules *ApplyRulesType `json:"applyRules,omitempty" yaml:"applyRules,omitempty"`
+	ApplyRules *ApplyRulesType `json:"applyRules,omitempty"`
 
-	// FailurePolicy defines how unexpected policy errors and webhook response timeout errors are handled.
-	// Rules within the same policy share the same failure behavior.
-	// This field should not be accessed directly, instead `GetFailurePolicy()` should be used.
-	// Allowed values are Ignore or Fail. Defaults to Fail.
-	// +optional
-	FailurePolicy *FailurePolicyType `json:"failurePolicy,omitempty" yaml:"failurePolicy,omitempty"`
+	// Deprecated, use failurePolicy under the webhookConfiguration instead.
+	FailurePolicy *FailurePolicyType `json:"failurePolicy,omitempty"`
 
-	// ValidationFailureAction defines if a validation policy rule violation should block
-	// the admission review request (enforce), or allow (audit) the admission review request
-	// and report an error in a policy report. Optional.
-	// Allowed values are audit or enforce. The default value is "Audit".
-	// +optional
+	// Deprecated, use validationFailureAction under the validate rule instead.
 	// +kubebuilder:validation:Enum=audit;enforce;Audit;Enforce
 	// +kubebuilder:default=Audit
-	ValidationFailureAction ValidationFailureAction `json:"validationFailureAction,omitempty" yaml:"validationFailureAction,omitempty"`
+	ValidationFailureAction ValidationFailureAction `json:"validationFailureAction,omitempty"`
 
-	// ValidationFailureActionOverrides is a Cluster Policy attribute that specifies ValidationFailureAction
-	// namespace-wise. It overrides ValidationFailureAction for the specified namespaces.
+	// Deprecated, use validationFailureActionOverrides under the validate rule instead.
+	ValidationFailureActionOverrides []ValidationFailureActionOverride `json:"validationFailureActionOverrides,omitempty"`
+
+	// EmitWarning enables API response warnings for mutate policy rules or validate policy rules with validationFailureAction set to Audit.
+	// Enabling this option will extend admission request processing times. The default value is "false".
 	// +optional
-	ValidationFailureActionOverrides []ValidationFailureActionOverride `json:"validationFailureActionOverrides,omitempty" yaml:"validationFailureActionOverrides,omitempty"`
+	// +kubebuilder:default=false
+	EmitWarning *bool `json:"emitWarning,omitempty"`
+
+	// Admission controls if rules are applied during admission.
+	// Optional. Default value is "true".
+	// +optional
+	// +kubebuilder:default=true
+	Admission *bool `json:"admission,omitempty"`
 
 	// Background controls if rules are applied to existing resources during a background scan.
 	// Optional. Default value is "true". The value must be set to "false" if the policy rule
 	// uses variables that are only available in the admission review request (e.g. user name).
 	// +optional
 	// +kubebuilder:default=true
-	Background *bool `json:"background,omitempty" yaml:"background,omitempty"`
+	Background *bool `json:"background,omitempty"`
 
-	// SchemaValidation skips validation checks for policies as well as patched resources.
-	// Optional. The default value is set to "true", it must be set to "false" to disable the validation checks.
+	// Deprecated.
+	SchemaValidation *bool `json:"schemaValidation,omitempty"`
+
+	// Deprecated, use webhookTimeoutSeconds under webhookConfiguration instead.
+	WebhookTimeoutSeconds *int32 `json:"webhookTimeoutSeconds,omitempty"`
+
+	// Deprecated, use mutateExistingOnPolicyUpdate under the mutate rule instead
 	// +optional
-	SchemaValidation *bool `json:"schemaValidation,omitempty" yaml:"schemaValidation,omitempty"`
+	MutateExistingOnPolicyUpdate bool `json:"mutateExistingOnPolicyUpdate,omitempty"`
 
-	// WebhookTimeoutSeconds specifies the maximum time in seconds allowed to apply this policy.
-	// After the configured time expires, the admission request may fail, or may simply ignore the policy results,
-	// based on the failure policy. The default timeout is 10s, the value must be between 1 and 30 seconds.
-	WebhookTimeoutSeconds *int32 `json:"webhookTimeoutSeconds,omitempty" yaml:"webhookTimeoutSeconds,omitempty"`
-
-	// MutateExistingOnPolicyUpdate controls if a mutateExisting policy is applied on policy events.
-	// Default value is "false".
+	// Deprecated, use generateExisting instead
 	// +optional
-	MutateExistingOnPolicyUpdate bool `json:"mutateExistingOnPolicyUpdate,omitempty" yaml:"mutateExistingOnPolicyUpdate,omitempty"`
+	GenerateExistingOnPolicyUpdate *bool `json:"generateExistingOnPolicyUpdate,omitempty"`
 
-	// GenerateExistingOnPolicyUpdate controls whether to trigger generate rule in existing resources
-	// If is set to "true" generate rule will be triggered and applied to existing matched resources.
+	// Deprecated, use generateExisting under the generate rule instead
+	// +optional
+	GenerateExisting bool `json:"generateExisting,omitempty"`
+
+	// UseServerSideApply controls whether to use server-side apply for generate rules
+	// If is set to "true" create & update for generate rules will use apply instead of create/update.
 	// Defaults to "false" if not specified.
 	// +optional
-	GenerateExistingOnPolicyUpdate bool `json:"generateExistingOnPolicyUpdate,omitempty" yaml:"generateExistingOnPolicyUpdate,omitempty"`
+	UseServerSideApply bool `json:"useServerSideApply,omitempty"`
+
+	// WebhookConfiguration specifies the custom configuration for Kubernetes admission webhookconfiguration.
+	// +optional
+	WebhookConfiguration *WebhookConfiguration `json:"webhookConfiguration,omitempty"`
 }
 
 // HasMutate checks for mutate rule types
@@ -110,7 +119,6 @@ func (s *Spec) HasMutate() bool {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -121,50 +129,5 @@ func (s *Spec) HasValidate() bool {
 			return true
 		}
 	}
-
-	return false
-}
-
-// HasGenerate checks for generate rule types
-func (s *Spec) HasGenerate() bool {
-	for _, rule := range s.Rules {
-		if rule.HasGenerate() {
-			return true
-		}
-	}
-
-	return false
-}
-
-// HasImagesValidationChecks checks for image verification rules invoked during resource validation
-func (s *Spec) HasImagesValidationChecks() bool {
-	for _, rule := range s.Rules {
-		if rule.HasImagesValidationChecks() {
-			return true
-		}
-	}
-
-	return false
-}
-
-// HasVerifyImages checks for image verification rules invoked during resource mutation
-func (s *Spec) HasVerifyImages() bool {
-	for _, rule := range s.Rules {
-		if rule.HasVerifyImages() {
-			return true
-		}
-	}
-
-	return false
-}
-
-// HasYAMLSignatureVerify checks for image verification rules invoked during resource mutation
-func (s *Spec) HasYAMLSignatureVerify() bool {
-	for _, rule := range s.Rules {
-		if rule.HasYAMLSignatureVerify() {
-			return true
-		}
-	}
-
 	return false
 }

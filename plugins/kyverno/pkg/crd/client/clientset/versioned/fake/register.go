@@ -19,19 +19,24 @@ limitations under the License.
 package fake
 
 import (
+	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
+	kyvernov2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"
+	policiesv1alpha1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policies.kyverno.io/v1alpha1"
+	wgpolicyk8sv1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policyreport/v1alpha2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-
-	wgpolicyk8sv1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policyreport/v1alpha2"
 )
 
 var scheme = runtime.NewScheme()
 var codecs = serializer.NewCodecFactory(scheme)
 
 var localSchemeBuilder = runtime.SchemeBuilder{
+	kyvernov1.AddToScheme,
+	kyvernov2beta1.AddToScheme,
+	policiesv1alpha1.AddToScheme,
 	wgpolicyk8sv1alpha2.AddToScheme,
 }
 

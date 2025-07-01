@@ -15,14 +15,14 @@ import (
 	"k8s.io/client-go/tools/cache"
 
 	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno"
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno/pol"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
 
 type eventClient struct {
 	publisher      *violation.Publisher
 	factory        informers.SharedInformerFactory
-	client         kyverno.Client
+	client         pol.Client
 	eventNamespace string
 }
 
@@ -109,8 +109,8 @@ func ConvertEvent(event *corev1.Event, policy kyvernov1.PolicyInterface, updated
 			Name:     policy.GetName(),
 			Rule:     ruleName,
 			Message:  message,
-			Category: policy.GetAnnotations()[kyverno.AnnotationPolicyCategory],
-			Severity: policy.GetAnnotations()[kyverno.AnnotationPolicySeverity],
+			Category: policy.GetAnnotations()[pol.AnnotationPolicyCategory],
+			Severity: policy.GetAnnotations()[pol.AnnotationPolicySeverity],
 		},
 		Timestamp: timestamp,
 		Updated:   updated,
@@ -121,7 +121,7 @@ func ConvertEvent(event *corev1.Event, policy kyvernov1.PolicyInterface, updated
 	}
 }
 
-func NewClient(events k8s.Interface, publisher *violation.Publisher, client kyverno.Client, eventNamespace string) violation.EventClient {
+func NewClient(events k8s.Interface, publisher *violation.Publisher, client pol.Client, eventNamespace string) violation.EventClient {
 	factory := informers.NewFilteredSharedInformerFactory(events, 0, eventNamespace, func(lo *v1.ListOptions) {
 		lo.FieldSelector = fields.Set{
 			"source": "kyverno-admission",
