@@ -24,8 +24,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
-          go-version-file: plugins/trivy/go.mod
-          cache-dependency-path: plugins/trivy/go.sum
+          go-version-file: plugins/kyverno/go.mod
+          cache-dependency-path: plugins/kyverno/go.sum
 
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
