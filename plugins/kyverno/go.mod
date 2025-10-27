@@ -5,7 +5,7 @@ go 1.24.4
 replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/api
 
 require (
-	github.com/gin-contrib/gzip v1.2.4
+	github.com/gin-contrib/gzip v1.2.5
 	github.com/gin-contrib/pprof v1.5.3
 	github.com/gin-contrib/zap v1.1.5
 	github.com/gin-gonic/gin v1.11.0
