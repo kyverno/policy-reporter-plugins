@@ -6,7 +6,7 @@ replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/a
 
 require (
 	github.com/aquasecurity/trivy-db v0.0.0-20250630075649-3a1cd4ffcce2
-	github.com/gin-contrib/gzip v1.2.4
+	github.com/gin-contrib/gzip v1.2.5
 	github.com/gin-contrib/pprof v1.5.3
 	github.com/gin-contrib/zap v1.1.5
 	github.com/gin-gonic/gin v1.11.0
