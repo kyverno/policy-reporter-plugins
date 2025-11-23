@@ -38,15 +38,15 @@ endif
 #########
 TOOLS_DIR      					   := $(PWD)/.tools
 KO             					   := $(TOOLS_DIR)/ko
-KO_VERSION     					   := v0.15.1
+KO_VERSION     				       := v0.18.0
 GCI                                := $(TOOLS_DIR)/gci
-GCI_VERSION                        := v0.9.1
+GCI_VERSION                        := v0.13.7
 GOFUMPT                            := $(TOOLS_DIR)/gofumpt
-GOFUMPT_VERSION                    := v0.4.0
+GOFUMPT_VERSION                    := v0.9.1
 HELM                               := $(TOOLS_DIR)/helm
 HELM_VERSION                       := v3.10.1
 HELM_DOCS                          := $(TOOLS_DIR)/helm-docs
-HELM_DOCS_VERSION                  := v1.11.0
+HELM_DOCS_VERSION                  := v1.14.2
 
 $(HELM):
 	@echo Install helm... >&2
