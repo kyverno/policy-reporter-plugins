@@ -7,7 +7,7 @@ replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/a
 require (
 	github.com/gin-contrib/gzip v1.2.5
 	github.com/gin-contrib/pprof v1.5.3
-	github.com/gin-contrib/zap v1.1.5
+	github.com/gin-contrib/zap v1.1.6
 	github.com/gin-gonic/gin v1.11.0
 	github.com/itchyny/json2yaml v0.1.4
 	github.com/jinzhu/copier v0.4.0
