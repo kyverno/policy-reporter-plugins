@@ -16,7 +16,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	go.uber.org/zap v1.27.1
-	golang.org/x/sync v0.18.0
+	golang.org/x/sync v0.19.0
 	golang.org/x/text v0.31.0
 	k8s.io/api v0.34.2
 	k8s.io/apimachinery v0.34.2
