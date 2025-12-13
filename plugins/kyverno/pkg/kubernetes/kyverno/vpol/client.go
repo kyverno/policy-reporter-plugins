@@ -170,7 +170,7 @@ func (c *client) GetPolicy(ctx context.Context, resource string) (*sdk.Policy, e
 			}
 		}
 
-		details.Details = append(details.Details, sdk.DetailsItem{Title: "FailurePolicy", Value: utils.Defaults(utils.ToString(spec["failurePolicy"]), "Fail")})
+		details.Details = append(details.Details, sdk.DetailsItem{Title: "FailurePolicy", Value: utils.Defaults(utils.ToString(spec["failurePolicy"]), "N/A")})
 		details.Details = append(details.Details, sdk.DetailsItem{Title: "Mode", Value: utils.ToString(spec["validationActions"])})
 	}
 
