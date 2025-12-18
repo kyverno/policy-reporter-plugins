@@ -24,10 +24,10 @@ require (
 	golang.org/x/sync v0.19.0
 	golang.org/x/text v0.32.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.34.3
+	k8s.io/api v0.35.0
 	k8s.io/apiextensions-apiserver v0.34.3
-	k8s.io/apimachinery v0.34.3
-	k8s.io/client-go v0.34.3
+	k8s.io/apimachinery v0.35.0
+	k8s.io/client-go v0.35.0
 	k8s.io/pod-security-admission v0.34.3
 	k8s.io/utils v0.0.0-20251002143259-bc988d571ff4
 )
@@ -206,7 +206,6 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oleiade/reflections v1.1.0 // indirect
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852 // indirect
-	github.com/onsi/ginkgo/v2 v2.23.3 // indirect
 	github.com/open-policy-agent/gatekeeper/v3 v3.21.0 // indirect
 	github.com/open-policy-agent/opa v1.11.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
