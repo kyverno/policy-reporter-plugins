@@ -1,6 +1,6 @@
 module github.com/kyverno/policy-reporter-plugins/plugins/trivy
 
-go 1.24.2
+go 1.25.0
 
 replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/api
 
@@ -19,11 +19,12 @@ require (
 	golang.org/x/sync v0.19.0
 	golang.org/x/text v0.32.0
 	k8s.io/api v0.34.3
-	k8s.io/apimachinery v0.34.3
+	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.34.2
 )
 
 require (
+	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.14.2 // indirect
 	github.com/bytedance/sonic/loader v0.4.0 // indirect
