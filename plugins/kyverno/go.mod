@@ -25,7 +25,7 @@ require (
 	golang.org/x/text v0.32.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.35.0
-	k8s.io/apiextensions-apiserver v0.34.3
+	k8s.io/apiextensions-apiserver v0.35.0
 	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.35.0
 	k8s.io/pod-security-admission v0.35.0
@@ -159,7 +159,6 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.19.0 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/certificate-transparency-go v1.3.2 // indirect
