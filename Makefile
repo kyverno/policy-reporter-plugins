@@ -44,7 +44,7 @@ GCI_VERSION                        := v0.13.7
 GOFUMPT                            := $(TOOLS_DIR)/gofumpt
 GOFUMPT_VERSION                    := v0.9.1
 HELM                               := $(TOOLS_DIR)/helm
-HELM_VERSION                       := v3.10.1
+HELM_VERSION                       := v3.19.1
 HELM_DOCS                          := $(TOOLS_DIR)/helm-docs
 HELM_DOCS_VERSION                  := v1.14.2
 
