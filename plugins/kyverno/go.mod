@@ -24,9 +24,9 @@ require (
 	golang.org/x/sync v0.19.0
 	golang.org/x/text v0.32.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.35.0
+	k8s.io/api v0.35.1
 	k8s.io/apiextensions-apiserver v0.35.0
-	k8s.io/apimachinery v0.35.0
+	k8s.io/apimachinery v0.35.1
 	k8s.io/client-go v0.35.0
 	k8s.io/pod-security-admission v0.35.0
 	k8s.io/utils v0.0.0-20251222233032-718f0e51e6d2
