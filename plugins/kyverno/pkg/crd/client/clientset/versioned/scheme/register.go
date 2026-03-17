@@ -19,9 +19,10 @@ limitations under the License.
 package scheme
 
 import (
+	policiesv1beta1 "github.com/kyverno/api/api/policies.kyverno.io/v1beta1"
 	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
+	kyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2"
 	kyvernov2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"
-	policiesv1alpha1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policies.kyverno.io/v1alpha1"
 	wgpolicyk8sv1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policyreport/v1alpha2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -35,8 +36,9 @@ var Codecs = serializer.NewCodecFactory(Scheme)
 var ParameterCodec = runtime.NewParameterCodec(Scheme)
 var localSchemeBuilder = runtime.SchemeBuilder{
 	kyvernov1.AddToScheme,
+	kyvernov2.AddToScheme,
 	kyvernov2beta1.AddToScheme,
-	policiesv1alpha1.AddToScheme,
+	policiesv1beta1.AddToScheme,
 	wgpolicyk8sv1alpha2.AddToScheme,
 }
 

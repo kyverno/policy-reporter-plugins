@@ -15,16 +15,15 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/metadata"
 
+	"github.com/kyverno/api/api/policies.kyverno.io/v1beta1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policies.kyverno.io/v1alpha1"
-	apiV1alpha1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policies.kyverno.io/v1alpha1"
-	policiesv1alpha1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1alpha1"
+	policiesv1beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1beta1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/utils"
 )
 
 var (
-	policySchema = apiV1alpha1.SchemeGroupVersion.WithResource("imagevalidatingpolicies")
+	policySchema = v1beta1.SchemeGroupVersion.WithResource("imagevalidatingpolicies")
 )
 
 const (
@@ -42,13 +41,13 @@ const (
 type Client interface {
 	GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error)
 	GetPolicy(ctx context.Context, name string) (*sdk.Policy, error)
-	GetCRD(ctx context.Context, name, namespace string) (*v1alpha1.ImageValidatingPolicy, error)
+	GetCRD(ctx context.Context, name, namespace string) (*v1beta1.ImageValidatingPolicy, error)
 }
 
 type client struct {
 	metaClient    metadata.Interface
 	dynamicClient dynamic.Interface
-	client        policiesv1alpha1.ImageValidatingPolicyInterface
+	client        policiesv1beta1.ImageValidatingPolicyInterface
 	coreClient    *core.Client
 	cache         *gocache.Cache
 }
@@ -203,10 +202,10 @@ func (c *client) GetPolicy(ctx context.Context, resource string) (*sdk.Policy, e
 	return details, nil
 }
 
-func (c *client) GetCRD(ctx context.Context, name, namespace string) (*v1alpha1.ImageValidatingPolicy, error) {
+func (c *client) GetCRD(ctx context.Context, name, namespace string) (*v1beta1.ImageValidatingPolicy, error) {
 	return c.client.Get(ctx, name, v1.GetOptions{})
 }
 
-func NewClient(metaClient metadata.Interface, dynamicClient dynamic.Interface, kclient policiesv1alpha1.ImageValidatingPolicyInterface, coreClient *core.Client, cache *gocache.Cache) Client {
+func NewClient(metaClient metadata.Interface, dynamicClient dynamic.Interface, kclient policiesv1beta1.ImageValidatingPolicyInterface, coreClient *core.Client, cache *gocache.Cache) Client {
 	return &client{metaClient, dynamicClient, kclient, coreClient, cache}
 }

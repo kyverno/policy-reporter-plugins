@@ -62,7 +62,7 @@ type Validation struct {
 
 	// Assert defines a kyverno-json assertion tree.
 	// +optional
-	Assert AssertionTree `json:"assert"`
+	Assert *AssertionTree `json:"assert"`
 }
 
 // ConditionOperator is the operation performed on condition key and value.
@@ -128,22 +128,6 @@ type Condition struct {
 
 	// Message is an optional display message
 	Message string `json:"message,omitempty"`
-}
-
-func (c *Condition) GetKey() any {
-	return kyverno.FromAny(c.RawKey)
-}
-
-func (c *Condition) SetKey(in any) {
-	c.RawKey = kyverno.ToAny(in)
-}
-
-func (c *Condition) GetValue() any {
-	return kyverno.FromAny(c.RawValue)
-}
-
-func (c *Condition) SetValue(in any) {
-	c.RawValue = kyverno.ToAny(in)
 }
 
 type AnyAllConditions struct {

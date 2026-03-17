@@ -1,7 +1,10 @@
 package v1
 
 import (
+	"strings"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -22,12 +25,17 @@ type ResourceSpec struct {
 	UID types.UID `json:"uid,omitempty"`
 }
 
-type TargetSelector struct {
-	// ResourceSpec contains the target resources to load when mutating existing resources.
-	ResourceSpec `json:",omitempty"`
-	// Selector allows you to select target resources with their labels.
-	// +optional
-	Selector *metav1.LabelSelector `json:"selector,omitempty"`
+func (s ResourceSpec) GetName() string       { return s.Name }
+func (s ResourceSpec) GetNamespace() string  { return s.Namespace }
+func (s ResourceSpec) GetKind() string       { return s.Kind }
+func (s ResourceSpec) GetAPIVersion() string { return s.APIVersion }
+func (s ResourceSpec) GetUID() types.UID     { return s.UID }
+func (s ResourceSpec) GetGroupVersion() (schema.GroupVersion, error) {
+	return schema.ParseGroupVersion(s.APIVersion)
+}
+
+func (s ResourceSpec) String() string {
+	return strings.Join([]string{s.APIVersion, s.Kind, s.Namespace, s.Name}, "/")
 }
 
 // TargetResourceSpec defines targets for mutating existing resources.
@@ -49,3 +57,20 @@ type TargetResourceSpec struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	RawAnyAllConditions *ConditionsWrapper `json:"preconditions,omitempty"`
 }
+
+type TargetSelector struct {
+	// ResourceSpec contains the target resources to load when mutating existing resources.
+	ResourceSpec `json:",omitempty"`
+	// Selector allows you to select target resources with their labels.
+	// +optional
+	Selector *metav1.LabelSelector `json:"selector,omitempty"`
+}
+
+func (r *TargetResourceSpec) GetAnyAllConditions() any {
+	if r.RawAnyAllConditions == nil {
+		return nil
+	}
+	return r.RawAnyAllConditions.Conditions
+}
+
+func (r *TargetResourceSpec) GetSelector() *metav1.LabelSelector { return r.Selector }

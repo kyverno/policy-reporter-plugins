@@ -45,16 +45,6 @@ func (p *ClusterPolicy) GetStatus() *PolicyStatus {
 	return &p.Status
 }
 
-// IsNamespaced indicates if the policy is namespace scoped
-func (p *ClusterPolicy) IsNamespaced() bool {
-	return false
-}
-
-// IsReady indicates if the policy is ready to serve the admission request
-func (p *ClusterPolicy) IsReady() bool {
-	return p.Status.IsReady()
-}
-
 func (p *ClusterPolicy) GetKind() string {
 	return "ClusterPolicy"
 }

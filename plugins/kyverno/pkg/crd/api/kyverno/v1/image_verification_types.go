@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policies.kyverno.io/v1alpha1"
+	"github.com/kyverno/api/api/policies.kyverno.io/v1alpha1"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
@@ -345,7 +345,8 @@ type ImageRegistryCredentials struct {
 	Providers []ImageRegistryCredentialsProvidersType `json:"providers,omitempty"`
 
 	// Secrets specifies a list of secrets that are provided for credentials.
-	// Secrets must live in the Kyverno namespace.
+	// Secrets can be specified as a name (Kyverno namespace) or namespace/name.
+	// imagePullSecrets from the resource namespace are also used.
 	// +kubebuilder:validation:Optional
 	Secrets []string `json:"secrets,omitempty"`
 }

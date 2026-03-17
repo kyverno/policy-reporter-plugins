@@ -35,10 +35,6 @@ type Policy struct {
 	Status kyvernov1.PolicyStatus `json:"status,omitempty"`
 }
 
-func (p *Policy) GetKind() string {
-	return p.Kind
-}
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // PolicyList is a list of Policy instances.

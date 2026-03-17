@@ -22,12 +22,15 @@ import (
 	clientset "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned"
 	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v1"
 	fakekyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v1/fake"
+	kyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v2"
+	fakekyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v2/fake"
 	kyvernov2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v2beta1"
 	fakekyvernov2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v2beta1/fake"
-	policiesv1alpha1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1alpha1"
-	fakepoliciesv1alpha1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1alpha1/fake"
+	policiesv1beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1beta1"
+	fakepoliciesv1beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1beta1/fake"
 	wgpolicyk8sv1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2"
 	fakewgpolicyk8sv1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2/fake"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -40,7 +43,7 @@ import (
 // without applying any field management, validations and/or defaults. It shouldn't be considered a replacement
 // for a real clientset and is mostly useful in simple unit tests.
 //
-// DEPRECATED: NewClientset replaces this with support for field management, which significantly improves
+// Deprecated: NewClientset replaces this with support for field management, which significantly improves
 // server side apply testing. NewClientset is only available when apply configurations are generated (e.g.
 // via --with-applyconfig).
 func NewSimpleClientset(objects ...runtime.Object) *Clientset {
@@ -55,9 +58,13 @@ func NewSimpleClientset(objects ...runtime.Object) *Clientset {
 	cs.discovery = &fakediscovery.FakeDiscovery{Fake: &cs.Fake}
 	cs.AddReactor("*", "*", testing.ObjectReaction(o))
 	cs.AddWatchReactor("*", func(action testing.Action) (handled bool, ret watch.Interface, err error) {
+		var opts metav1.ListOptions
+		if watchAction, ok := action.(testing.WatchActionImpl); ok {
+			opts = watchAction.ListOptions
+		}
 		gvr := action.GetResource()
 		ns := action.GetNamespace()
-		watch, err := o.Watch(gvr, ns)
+		watch, err := o.Watch(gvr, ns, opts)
 		if err != nil {
 			return false, nil, err
 		}
@@ -84,6 +91,17 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 	return c.tracker
 }
 
+// IsWatchListSemanticsSupported informs the reflector that this client
+// doesn't support WatchList semantics.
+//
+// This is a synthetic method whose sole purpose is to satisfy the optional
+// interface check performed by the reflector.
+// Returning true signals that WatchList can NOT be used.
+// No additional logic is implemented here.
+func (c *Clientset) IsWatchListSemanticsUnSupported() bool {
+	return true
+}
+
 var (
 	_ clientset.Interface = &Clientset{}
 	_ testing.FakeClient  = &Clientset{}
@@ -94,14 +112,19 @@ func (c *Clientset) KyvernoV1() kyvernov1.KyvernoV1Interface {
 	return &fakekyvernov1.FakeKyvernoV1{Fake: &c.Fake}
 }
 
+// KyvernoV2 retrieves the KyvernoV2Client
+func (c *Clientset) KyvernoV2() kyvernov2.KyvernoV2Interface {
+	return &fakekyvernov2.FakeKyvernoV2{Fake: &c.Fake}
+}
+
 // KyvernoV2beta1 retrieves the KyvernoV2beta1Client
 func (c *Clientset) KyvernoV2beta1() kyvernov2beta1.KyvernoV2beta1Interface {
 	return &fakekyvernov2beta1.FakeKyvernoV2beta1{Fake: &c.Fake}
 }
 
-// PoliciesV1alpha1 retrieves the PoliciesV1alpha1Client
-func (c *Clientset) PoliciesV1alpha1() policiesv1alpha1.PoliciesV1alpha1Interface {
-	return &fakepoliciesv1alpha1.FakePoliciesV1alpha1{Fake: &c.Fake}
+// PoliciesV1beta1 retrieves the PoliciesV1beta1Client
+func (c *Clientset) PoliciesV1beta1() policiesv1beta1.PoliciesV1beta1Interface {
+	return &fakepoliciesv1beta1.FakePoliciesV1beta1{Fake: &c.Fake}
 }
 
 // Wgpolicyk8sV1alpha2 retrieves the Wgpolicyk8sV1alpha2Client

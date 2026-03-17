@@ -14,7 +14,7 @@ import (
 
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
 	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v1"
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1alpha1"
+	policiesv1beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1beta1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policyreport/v1alpha2"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/events"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/kyverno/ivpol"
@@ -167,13 +167,13 @@ func (r *Resolver) KyvernoClient() (pol.Client, error) {
 	return r.kyvernoClient, nil
 }
 
-func (r *Resolver) PoliciesV1Alpha1Client() (*v1alpha1.PoliciesV1alpha1Client, error) {
+func (r *Resolver) PoliciesV1Alpha1Client() (policiesv1beta1.PoliciesV1beta1Interface, error) {
 	k8sConfig, err := r.K8sConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := v1alpha1.NewForConfig(k8sConfig)
+	client, err := policiesv1beta1.NewForConfig(k8sConfig)
 	if err != nil {
 		return nil, err
 	}
