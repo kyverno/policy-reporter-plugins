@@ -167,7 +167,7 @@ func (r *Resolver) KyvernoClient() (pol.Client, error) {
 	return r.kyvernoClient, nil
 }
 
-func (r *Resolver) PoliciesV1Alpha1Client() (policiesv1beta1.PoliciesV1beta1Interface, error) {
+func (r *Resolver) PoliciesV1Beta1Client() (policiesv1beta1.PoliciesV1beta1Interface, error) {
 	k8sConfig, err := r.K8sConfig()
 	if err != nil {
 		return nil, err
@@ -196,7 +196,7 @@ func (r *Resolver) VPOLClient() (vpol.Client, error) {
 		return nil, err
 	}
 
-	k, err := r.PoliciesV1Alpha1Client()
+	k, err := r.PoliciesV1Beta1Client()
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (r *Resolver) VPOLClient() (vpol.Client, error) {
 		return nil, err
 	}
 
-	r.vpolClient = vpol.NewClient(m, d, k.ValidatingPolicies(), c, gocache.New(15*time.Second, 5*time.Second))
+	r.vpolClient = vpol.NewClient(m, d, k, c, gocache.New(15*time.Second, 5*time.Second))
 
 	return r.vpolClient, nil
 }
@@ -226,7 +226,7 @@ func (r *Resolver) IVPOLClient() (ivpol.Client, error) {
 		return nil, err
 	}
 
-	k, err := r.PoliciesV1Alpha1Client()
+	k, err := r.PoliciesV1Beta1Client()
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,17 @@ func (r *Resolver) EventClient() (violation.EventClient, error) {
 		return nil, err
 	}
 
-	r.eventClient = events.NewClient(clientset, r.ViolationPublisher(), kclient, r.config.BlockReports.EventNamespace)
+	ivpol, err := r.IVPOLClient()
+	if err != nil {
+		return nil, err
+	}
+
+	vpol, err := r.VPOLClient()
+	if err != nil {
+		return nil, err
+	}
+
+	r.eventClient = events.NewClient(clientset, r.ViolationPublisher(), kclient, vpol, ivpol, r.config.BlockReports.EventNamespace)
 
 	return r.eventClient, nil
 }

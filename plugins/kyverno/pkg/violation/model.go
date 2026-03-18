@@ -6,9 +6,10 @@ import (
 )
 
 type Resource struct {
-	Kind      string
-	Name      string
-	Namespace string
+	Kind       string
+	APIVersion string
+	Name       string
+	Namespace  string
 }
 
 type Event struct {
@@ -18,6 +19,7 @@ type Event struct {
 
 type Policy struct {
 	Name     string
+	Kind     string
 	Rule     string
 	Message  string
 	Category string

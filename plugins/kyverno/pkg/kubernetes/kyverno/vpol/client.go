@@ -10,6 +10,7 @@ import (
 	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
 	gocache "github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/dynamic"
@@ -23,7 +24,8 @@ import (
 )
 
 var (
-	policySchema = v1beta1.SchemeGroupVersion.WithResource("validatingpolicies")
+	policySchema   = v1beta1.SchemeGroupVersion.WithResource("validatingpolicies")
+	nspolicySchema = v1beta1.SchemeGroupVersion.WithResource("namespacedvalidatingpolicies")
 )
 
 const (
@@ -41,13 +43,13 @@ const (
 type Client interface {
 	GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error)
 	GetPolicy(ctx context.Context, name string) (*sdk.Policy, error)
-	GetCRD(ctx context.Context, name, namespace string) (*v1beta1.ValidatingPolicy, error)
+	GetCRD(ctx context.Context, name, namespace string) (v1beta1.ValidatingPolicyLike, error)
 }
 
 type client struct {
 	metaClient    metadata.Interface
 	dynamicClient dynamic.Interface
-	client        policiesv1beta1.ValidatingPolicyInterface
+	client        policiesv1beta1.PoliciesV1beta1Interface
 	coreClient    *core.Client
 	cache         *gocache.Cache
 }
@@ -61,18 +63,42 @@ func (c *client) GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error) 
 	results := make([]v1.PartialObjectMetadata, 0)
 	mx := new(sync.Mutex)
 
-	zap.L().Debug("loading validatingpolicy list from KubeAPI")
+	g := &errgroup.Group{}
 
-	list, err := kubernetes.Retry(func() (*v1.PartialObjectMetadataList, error) {
-		return c.metaClient.Resource(policySchema).List(ctx, v1.ListOptions{})
+	zap.L().Debug("loading validatingpolicy list from KubeAPI")
+	g.Go(func() error {
+		list, err := kubernetes.Retry(func() (*v1.PartialObjectMetadataList, error) {
+			return c.metaClient.Resource(policySchema).List(ctx, v1.ListOptions{})
+		})
+		if err != nil {
+			return err
+		}
+
+		mx.Lock()
+		results = append(results, list.Items...)
+		mx.Unlock()
+
+		return nil
 	})
-	if err != nil {
+
+	g.Go(func() error {
+		list, err := kubernetes.Retry(func() (*v1.PartialObjectMetadataList, error) {
+			return c.metaClient.Resource(nspolicySchema).Namespace("").List(ctx, v1.ListOptions{})
+		})
+		if err != nil {
+			return err
+		}
+
+		mx.Lock()
+		results = append(results, list.Items...)
+		mx.Unlock()
+
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
 		return nil, err
 	}
-
-	mx.Lock()
-	results = append(results, list.Items...)
-	mx.Unlock()
 
 	policies := utils.Map(results, func(p v1.PartialObjectMetadata) sdk.PolicyListItem {
 		var title string
@@ -112,6 +138,9 @@ func (c *client) GetPolicy(ctx context.Context, resource string) (*sdk.Policy, e
 	var err error
 
 	unstr, err = kubernetes.Retry(func() (*unstructured.Unstructured, error) {
+		if namespace != "" {
+			return c.dynamicClient.Resource(nspolicySchema).Namespace(namespace).Get(ctx, name, v1.GetOptions{})
+		}
 		return c.dynamicClient.Resource(policySchema).Get(ctx, name, v1.GetOptions{})
 	})
 	if err != nil {
@@ -202,10 +231,14 @@ func (c *client) GetPolicy(ctx context.Context, resource string) (*sdk.Policy, e
 	return details, nil
 }
 
-func (c *client) GetCRD(ctx context.Context, name, namespace string) (*v1beta1.ValidatingPolicy, error) {
-	return c.client.Get(ctx, name, v1.GetOptions{})
+func (c *client) GetCRD(ctx context.Context, name, namespace string) (v1beta1.ValidatingPolicyLike, error) {
+	if namespace != "" {
+		return c.client.NamespacedValidatingPolicies(namespace).Get(ctx, name, v1.GetOptions{})
+	}
+
+	return c.client.ValidatingPolicies().Get(ctx, name, v1.GetOptions{})
 }
 
-func NewClient(metaClient metadata.Interface, dynamicClient dynamic.Interface, kclient policiesv1beta1.ValidatingPolicyInterface, coreClient *core.Client, cache *gocache.Cache) Client {
+func NewClient(metaClient metadata.Interface, dynamicClient dynamic.Interface, kclient policiesv1beta1.PoliciesV1beta1Interface, coreClient *core.Client, cache *gocache.Cache) Client {
 	return &client{metaClient, dynamicClient, kclient, coreClient, cache}
 }

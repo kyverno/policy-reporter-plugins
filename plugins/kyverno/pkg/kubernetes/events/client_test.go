@@ -135,7 +135,7 @@ func Test_EventWatcher(t *testing.T) {
 		eventChan <- pv
 	})
 
-	client := kubernetes.NewClient(kclient, publisher, NewPolicyFakeCilent(), "default")
+	client := kubernetes.NewClient(kclient, publisher, NewPolicyFakeCilent(), nil, nil, "default")
 	err := client.Run(ctx, stop)
 	if err != nil {
 		t.Fatal(err)
@@ -230,7 +230,7 @@ func Test_NotBlockedEvent(t *testing.T) {
 		eventChan <- pv
 	})
 
-	client := kubernetes.NewClient(kclient, publisher, NewPolicyFakeCilent(), "default")
+	client := kubernetes.NewClient(kclient, publisher, NewPolicyFakeCilent(), nil, nil, "default")
 	err := client.Run(ctx, stop)
 	if err != nil {
 		t.Fatal(err)
@@ -266,7 +266,7 @@ func Test_UnknownPolicy(t *testing.T) {
 		eventChan <- pv
 	})
 
-	client := kubernetes.NewClient(kclient, publisher, NewPolicyFakeCilent(), "default")
+	client := kubernetes.NewClient(kclient, publisher, NewPolicyFakeCilent(), nil, nil, "default")
 	err := client.Run(ctx, stop)
 	if err != nil {
 		t.Fatal(err)
