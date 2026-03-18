@@ -1,7 +1,6 @@
 package v1
 
 import (
-	kjson "github.com/kyverno/kyverno-json/pkg/apis/policy/v1alpha1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno"
 	"github.com/sigstore/k8s-manifest-sigstore/pkg/k8smanifest"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -10,9 +9,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/pod-security-admission/api"
 )
-
-// AssertionTree defines a kyverno-json assertion tree.
-type AssertionTree = kjson.Any
 
 // FailurePolicyType specifies a failure policy that defines how unrecognized errors from the admission endpoint are handled.
 // +kubebuilder:validation:Enum=Ignore;Fail
@@ -453,10 +449,6 @@ type Validation struct {
 	// CEL allows validation checks using the Common Expression Language (https://kubernetes.io/docs/reference/using-api/cel/).
 	// +optional
 	CEL *CEL `json:"cel,omitempty"`
-
-	// Assert defines a kyverno-json assertion tree.
-	// +optional
-	Assert *AssertionTree `json:"assert,omitempty"`
 }
 
 // PodSecurity applies exemptions for Kubernetes Pod Security admission
