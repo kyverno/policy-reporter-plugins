@@ -22,7 +22,6 @@ limitations under the License.
 package v1
 
 import (
-	kyverno "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno"
 	k8smanifest "github.com/sigstore/k8s-manifest-sigstore/pkg/k8smanifest"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -516,8 +515,7 @@ func (in *Deny) DeepCopyInto(out *Deny) {
 	*out = *in
 	if in.RawAnyAllConditions != nil {
 		in, out := &in.RawAnyAllConditions, &out.RawAnyAllConditions
-		*out = new(ConditionsWrapper)
-		(*in).DeepCopyInto(*out)
+		*out = (*in).DeepCopy()
 	}
 	return
 }
@@ -599,13 +597,11 @@ func (in *ForEachMutation) DeepCopyInto(out *ForEachMutation) {
 	}
 	if in.RawPatchStrategicMerge != nil {
 		in, out := &in.RawPatchStrategicMerge, &out.RawPatchStrategicMerge
-		*out = new(kyverno.Any)
-		(*in).DeepCopyInto(*out)
+		*out = (*in).DeepCopy()
 	}
 	if in.ForEachMutation != nil {
 		in, out := &in.ForEachMutation, &out.ForEachMutation
-		*out = new(ForEachMutationWrapper)
-		(*in).DeepCopyInto(*out)
+		*out = (*in).DeepCopy()
 	}
 	return
 }
@@ -657,8 +653,7 @@ func (in *ForEachValidation) DeepCopyInto(out *ForEachValidation) {
 	}
 	if in.ForEachValidation != nil {
 		in, out := &in.ForEachValidation, &out.ForEachValidation
-		*out = new(ForEachValidationWrapper)
-		(*in).DeepCopyInto(*out)
+		*out = (*in).DeepCopy()
 	}
 	return
 }
@@ -1427,8 +1422,7 @@ func (in *Rule) DeepCopyInto(out *Rule) {
 	}
 	if in.RawAnyAllConditions != nil {
 		in, out := &in.RawAnyAllConditions, &out.RawAnyAllConditions
-		*out = new(ConditionsWrapper)
-		(*in).DeepCopyInto(*out)
+		*out = (*in).DeepCopy()
 	}
 	if in.CELPreconditions != nil {
 		in, out := &in.CELPreconditions, &out.CELPreconditions
@@ -1647,8 +1641,7 @@ func (in *TargetResourceSpec) DeepCopyInto(out *TargetResourceSpec) {
 	}
 	if in.RawAnyAllConditions != nil {
 		in, out := &in.RawAnyAllConditions, &out.RawAnyAllConditions
-		*out = new(ConditionsWrapper)
-		(*in).DeepCopyInto(*out)
+		*out = (*in).DeepCopy()
 	}
 	return
 }
@@ -1810,7 +1803,10 @@ func (in *Validation) DeepCopyInto(out *Validation) {
 		*out = new(CEL)
 		(*in).DeepCopyInto(*out)
 	}
-	in.Assert.DeepCopyInto(&out.Assert)
+	if in.Assert != nil {
+		in, out := &in.Assert, &out.Assert
+		*out = (*in).DeepCopy()
+	}
 	return
 }
 
@@ -1855,13 +1851,11 @@ func (in *Variable) DeepCopyInto(out *Variable) {
 	*out = *in
 	if in.Value != nil {
 		in, out := &in.Value, &out.Value
-		*out = new(kyverno.Any)
-		(*in).DeepCopyInto(*out)
+		*out = (*in).DeepCopy()
 	}
 	if in.Default != nil {
 		in, out := &in.Default, &out.Default
-		*out = new(kyverno.Any)
-		(*in).DeepCopyInto(*out)
+		*out = (*in).DeepCopy()
 	}
 	return
 }

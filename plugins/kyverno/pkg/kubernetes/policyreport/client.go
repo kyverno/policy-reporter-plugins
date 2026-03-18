@@ -231,16 +231,18 @@ func buildResult(violation violation.PolicyViolation, source string) v1alpha2.Po
 		Result:   "fail",
 		Resources: []corev1.ObjectReference{
 			{
-				Kind:      violation.Resource.Kind,
-				Namespace: violation.Resource.Namespace,
-				Name:      violation.Resource.Name,
+				APIVersion: violation.Resource.APIVersion,
+				Kind:       violation.Resource.Kind,
+				Namespace:  violation.Resource.Namespace,
+				Name:       violation.Resource.Name,
 			},
 		},
 		Timestamp: v1.Timestamp{Seconds: violation.Timestamp.Unix()},
 		Properties: map[string]string{
-			"eventName": violation.Event.Name,
-			"resultID":  GeneratePolicyReportResultID(violation.Event.UID, violation.Timestamp),
-			"time":      violation.Timestamp.Format(time.RFC3339),
+			"policyKind": violation.Policy.Kind,
+			"eventName":  violation.Event.Name,
+			"resultID":   GeneratePolicyReportResultID(violation.Event.UID, violation.Timestamp),
+			"time":       violation.Timestamp.Format(time.RFC3339),
 		},
 	}
 }

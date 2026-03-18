@@ -10,5 +10,4 @@ type PolicyInterface interface {
 	metav1.Object
 	GetSpec() *Spec
 	GetStatus() *PolicyStatus
-	GetKind() string
 }

@@ -28,7 +28,10 @@ import (
 
 type KyvernoV2beta1Interface interface {
 	RESTClient() rest.Interface
+	CleanupPoliciesGetter
+	ClusterCleanupPoliciesGetter
 	ClusterPoliciesGetter
+	GlobalContextEntriesGetter
 	PoliciesGetter
 	PolicyExceptionsGetter
 }
@@ -38,8 +41,20 @@ type KyvernoV2beta1Client struct {
 	restClient rest.Interface
 }
 
+func (c *KyvernoV2beta1Client) CleanupPolicies(namespace string) CleanupPolicyInterface {
+	return newCleanupPolicies(c, namespace)
+}
+
+func (c *KyvernoV2beta1Client) ClusterCleanupPolicies() ClusterCleanupPolicyInterface {
+	return newClusterCleanupPolicies(c)
+}
+
 func (c *KyvernoV2beta1Client) ClusterPolicies() ClusterPolicyInterface {
 	return newClusterPolicies(c)
+}
+
+func (c *KyvernoV2beta1Client) GlobalContextEntries() GlobalContextEntryInterface {
+	return newGlobalContextEntries(c)
 }
 
 func (c *KyvernoV2beta1Client) Policies(namespace string) PolicyInterface {
@@ -55,9 +70,7 @@ func (c *KyvernoV2beta1Client) PolicyExceptions(namespace string) PolicyExceptio
 // where httpClient was generated with rest.HTTPClientFor(c).
 func NewForConfig(c *rest.Config) (*KyvernoV2beta1Client, error) {
 	config := *c
-	if err := setConfigDefaults(&config); err != nil {
-		return nil, err
-	}
+	setConfigDefaults(&config)
 	httpClient, err := rest.HTTPClientFor(&config)
 	if err != nil {
 		return nil, err
@@ -69,9 +82,7 @@ func NewForConfig(c *rest.Config) (*KyvernoV2beta1Client, error) {
 // Note the http client provided takes precedence over the configured transport values.
 func NewForConfigAndClient(c *rest.Config, h *http.Client) (*KyvernoV2beta1Client, error) {
 	config := *c
-	if err := setConfigDefaults(&config); err != nil {
-		return nil, err
-	}
+	setConfigDefaults(&config)
 	client, err := rest.RESTClientForConfigAndClient(&config, h)
 	if err != nil {
 		return nil, err
@@ -94,7 +105,7 @@ func New(c rest.Interface) *KyvernoV2beta1Client {
 	return &KyvernoV2beta1Client{c}
 }
 
-func setConfigDefaults(config *rest.Config) error {
+func setConfigDefaults(config *rest.Config) {
 	gv := kyvernov2beta1.SchemeGroupVersion
 	config.GroupVersion = &gv
 	config.APIPath = "/apis"
@@ -103,8 +114,6 @@ func setConfigDefaults(config *rest.Config) error {
 	if config.UserAgent == "" {
 		config.UserAgent = rest.DefaultKubernetesUserAgent()
 	}
-
-	return nil
 }
 
 // RESTClient returns a RESTClient that is used to communicate

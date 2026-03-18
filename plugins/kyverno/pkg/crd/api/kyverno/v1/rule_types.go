@@ -109,12 +109,91 @@ func (r *Rule) HasMutate() bool {
 	return r.Mutation != nil && !utils.DeepEqual(*r.Mutation, Mutation{})
 }
 
+// HasMutateStandard checks for standard admission mutate rule
+func (r *Rule) HasMutateStandard() bool {
+	if r.HasMutateExisting() {
+		return false
+	}
+	return r.HasMutate()
+}
+
+// HasMutateExisting checks if the mutate rule applies to existing resources
+func (r *Rule) HasMutateExisting() bool {
+	return r.Mutation != nil && r.Mutation.Targets != nil
+}
+
+// HasVerifyImages checks for verifyImages rule
+func (r *Rule) HasVerifyImages() bool {
+	for _, verifyImage := range r.VerifyImages {
+		if !utils.DeepEqual(verifyImage, ImageVerification{}) {
+			return true
+		}
+	}
+	return false
+}
+
+// HasValidateImageVerification checks for verifyImages rule has Validation
+func (r *Rule) HasValidateImageVerification() bool {
+	if !r.HasVerifyImages() {
+		return false
+	}
+	for _, verifyImage := range r.VerifyImages {
+		if !utils.DeepEqual(verifyImage.Validation, ValidateImageVerification{}) {
+			return true
+		}
+	}
+	return false
+}
+
+// HasVerifyImageChecks checks whether the verifyImages rule has validation checks
+func (r *Rule) HasVerifyImageChecks() bool {
+	for _, verifyImage := range r.VerifyImages {
+		if verifyImage.VerifyDigest || verifyImage.Required {
+			return true
+		}
+	}
+	return false
+}
+
+// HasVerifyManifests checks for validate.manifests rule
+func (r Rule) HasVerifyManifests() bool {
+	return r.Validation != nil && r.Validation.Manifests != nil && len(r.Validation.Manifests.Attestors) != 0
+}
+
+// HasValidatePodSecurity checks for validate.podSecurity rule
+func (r Rule) HasValidatePodSecurity() bool {
+	return r.Validation != nil && r.Validation.PodSecurity != nil && !utils.DeepEqual(*r.Validation.PodSecurity, PodSecurity{})
+}
+
+// HasValidateCEL checks for validate.cel rule
+func (r *Rule) HasValidateCEL() bool {
+	return r.Validation != nil && r.Validation.CEL != nil && !utils.DeepEqual(*r.Validation.CEL, CEL{})
+}
+
+// HasValidateAssert checks for validate.assert rule
+func (r *Rule) HasValidateAssert() bool {
+	return r.Validation != nil && r.Validation.Assert != nil && !utils.DeepEqual(*r.Validation.Assert, AssertionTree{})
+}
+
 // HasValidate checks for validate rule
 func (r *Rule) HasValidate() bool {
 	return r.Validation != nil && !utils.DeepEqual(*r.Validation, Validation{})
 }
 
+// HasValidateAllowExistingViolations() checks for allowExisitingViolations under validate rule
+func (r *Rule) HasValidateAllowExistingViolations() bool {
+	allowExisitingViolations := true
+	if r.Validation != nil && r.Validation.AllowExistingViolations != nil {
+		allowExisitingViolations = *r.Validation.AllowExistingViolations
+	}
+	return allowExisitingViolations
+}
+
 // HasGenerate checks for generate rule
 func (r *Rule) HasGenerate() bool {
 	return r.Generation != nil && !utils.DeepEqual(*r.Generation, Generation{})
+}
+
+func (r *Rule) IsPodSecurity() bool {
+	return r.Validation != nil && r.Validation.PodSecurity != nil
 }
