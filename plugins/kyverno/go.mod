@@ -12,7 +12,6 @@ require (
 	github.com/itchyny/json2yaml v0.1.4
 	github.com/jinzhu/copier v0.4.0
 	github.com/kyverno/api v0.0.1-alpha.2
-	github.com/kyverno/kyverno-json v0.0.4-0.20240730143747-aade3d42fc0e
 	github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/segmentio/fasthash v1.0.3
