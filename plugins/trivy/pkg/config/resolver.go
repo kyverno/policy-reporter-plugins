@@ -58,7 +58,12 @@ func (r *Resolver) Clientset() (*k8s.Clientset, error) {
 		return r.clientset, nil
 	}
 
-	clientset, err := k8s.NewForConfig(r.k8sConfig)
+	k8sConfig, err := r.K8sConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	clientset, err := k8s.NewForConfig(k8sConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -116,13 +121,16 @@ func (r *Resolver) Logger() *zap.Logger {
 }
 
 func (r *Resolver) Server(ctx context.Context, options []server.ServerOption) (*server.Server, error) {
-	var err error
 	basicAuth := &r.config.Server.BasicAuth
 
 	if basicAuth.SecretRef != "" {
-		if basicAuth, err = r.LoadBasicAuth(ctx, r.config.Server.BasicAuth.SecretRef); err != nil {
+		loadedBasicAuth, err := r.LoadBasicAuth(ctx, r.config.Server.BasicAuth.SecretRef)
+		if err != nil {
 			zap.L().Error("failed to load basic auth secret", zap.Error(err))
+			return nil, err
 		}
+
+		basicAuth = loadedBasicAuth
 	}
 
 	if basicAuth.Username != "" && basicAuth.Password != "" {
