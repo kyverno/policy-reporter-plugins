@@ -1,6 +1,6 @@
 module github.com/kyverno/policy-reporter-plugins/plugins/trivy
 
-go 1.26.0
+go 1.26.4
 
 replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/api
 
