@@ -61,13 +61,19 @@ type Github struct {
 	Token   string `mapstructure:"token"`
 }
 
+type AutoMemoryLimit struct {
+	Enabled bool    `mapstructure:"enabled"`
+	Ratio   float64 `mapstructure:"ratio"`
+}
+
 type Config struct {
-	KubeConfig clientcmd.ConfigOverrides
-	Namespace  string         `mapstructure:"namespace"`
-	Logging    logging.Config `mapstructure:"logging"`
-	Server     Server         `mapstructure:"server"`
-	Local      bool           `mapstructure:"local"`
-	CoreAPI    CoreAPI        `mapstructure:"core"`
-	Trivy      Trivy          `mapstructure:"trivy"`
-	Github     Github         `mapstructure:"github"`
+	KubeConfig      clientcmd.ConfigOverrides
+	Namespace       string          `mapstructure:"namespace"`
+	Logging         logging.Config  `mapstructure:"logging"`
+	Server          Server          `mapstructure:"server"`
+	Local           bool            `mapstructure:"local"`
+	CoreAPI         CoreAPI         `mapstructure:"core"`
+	Trivy           Trivy           `mapstructure:"trivy"`
+	Github          Github          `mapstructure:"github"`
+	AutoMemoryLimit AutoMemoryLimit `mapstructure:"autoMemoryLimit"`
 }

@@ -75,13 +75,19 @@ func (a CoreAPI) FromValues(values secrets.Values) CoreAPI {
 	return a
 }
 
+type AutoMemoryLimit struct {
+	Enabled bool    `mapstructure:"enabled"`
+	Ratio   float64 `mapstructure:"ratio"`
+}
+
 type Config struct {
-	KubeConfig     clientcmd.ConfigOverrides
-	Namespace      string         `mapstructure:"namespace"`
-	Logging        logging.Config `mapstructure:"logging"`
-	Server         Server         `mapstructure:"server"`
-	Local          bool           `mapstructure:"local"`
-	BlockReports   BlockReports   `mapstructure:"blockReports"`
-	LeaderElection LeaderElection `mapstructure:"leaderElection"`
-	CoreAPI        CoreAPI        `mapstructure:"core"`
+	KubeConfig      clientcmd.ConfigOverrides
+	Namespace       string          `mapstructure:"namespace"`
+	Logging         logging.Config  `mapstructure:"logging"`
+	Server          Server          `mapstructure:"server"`
+	Local           bool            `mapstructure:"local"`
+	BlockReports    BlockReports    `mapstructure:"blockReports"`
+	LeaderElection  LeaderElection  `mapstructure:"leaderElection"`
+	CoreAPI         CoreAPI         `mapstructure:"core"`
+	AutoMemoryLimit AutoMemoryLimit `mapstructure:"autoMemoryLimit"`
 }

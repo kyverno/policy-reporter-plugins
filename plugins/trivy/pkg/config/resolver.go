@@ -17,7 +17,6 @@ import (
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/cveawg"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/gh"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/kubernetes/secrets"
-	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/logging"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/server"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/vulnr"
 )
@@ -114,10 +113,6 @@ func (r *Resolver) DynamicClient() (dynamic.Interface, error) {
 	}
 
 	return client, nil
-}
-
-func (r *Resolver) Logger() *zap.Logger {
-	return logging.New(r.config.Logging)
 }
 
 func (r *Resolver) Server(ctx context.Context, options []server.ServerOption) (*server.Server, error) {
