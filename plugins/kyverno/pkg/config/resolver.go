@@ -23,7 +23,6 @@ import (
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/leaderelection"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/policyreport"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes/secrets"
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/logging"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/violation"
 )
@@ -239,10 +238,6 @@ func (r *Resolver) IVPOLClient() (ivpol.Client, error) {
 	r.ivpolClient = ivpol.NewClient(m, d, k.ImageValidatingPolicies(), c, gocache.New(15*time.Second, 5*time.Second))
 
 	return r.ivpolClient, nil
-}
-
-func (r *Resolver) Logger() *zap.Logger {
-	return logging.New(r.config.Logging)
 }
 
 func (r *Resolver) Server(ctx context.Context, options []server.ServerOption) (*server.Server, error) {
