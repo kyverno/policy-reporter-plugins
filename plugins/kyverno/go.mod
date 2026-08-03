@@ -12,7 +12,7 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/itchyny/json2yaml v0.1.5
 	github.com/jinzhu/copier v0.4.0
-	github.com/kyverno/api v0.0.1-alpha.3
+	github.com/kyverno/api v0.0.1-alpha.4
 	github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/segmentio/fasthash v1.0.3
