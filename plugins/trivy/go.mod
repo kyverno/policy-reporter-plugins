@@ -5,7 +5,7 @@ go 1.26.4
 replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/api
 
 require (
-	github.com/KimMachineGun/automemlimit v0.7.5
+	github.com/KimMachineGun/automemlimit v1.0.0
 	github.com/aquasecurity/trivy-db v0.0.0-20260713131703-4be526083c54
 	github.com/gin-contrib/gzip v1.2.6
 	github.com/gin-contrib/pprof v1.5.4
