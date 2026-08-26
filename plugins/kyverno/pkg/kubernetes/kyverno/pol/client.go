@@ -8,13 +8,13 @@ import (
 	"sync"
 
 	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
-	gocache "github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/metadata"
+	gocache "zgo.at/zcache/v2"
 
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
 	apiV1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
@@ -52,13 +52,13 @@ type client struct {
 	dynamicClient dynamic.Interface
 	v1Client      kyvernoV1.KyvernoV1Interface
 	coreClient    *core.Client
-	cache         *gocache.Cache
+	cache         *gocache.Cache[string, []sdk.PolicyListItem]
 }
 
 func (c *client) GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error) {
 	if list, ok := c.cache.Get(KeyListCache); ok {
 		zap.L().Debug("loading policy list from cache")
-		return list.([]sdk.PolicyListItem), nil
+		return list, nil
 	}
 
 	results := make([]v1.PartialObjectMetadata, 0)
@@ -119,7 +119,7 @@ func (c *client) GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error) 
 		}
 	})
 
-	c.cache.Set(KeyListCache, policies, gocache.DefaultExpiration)
+	c.cache.Set(KeyListCache, policies)
 
 	return policies, nil
 }
@@ -237,6 +237,6 @@ func (c *client) GetCRD(ctx context.Context, name, namespace string) (kyvernoTyp
 	return c.v1Client.Policies(namespace).Get(ctx, name, v1.GetOptions{})
 }
 
-func NewClient(metaClient metadata.Interface, dynamicClient dynamic.Interface, kclient kyvernoV1.KyvernoV1Interface, coreClient *core.Client, cache *gocache.Cache) Client {
+func NewClient(metaClient metadata.Interface, dynamicClient dynamic.Interface, kclient kyvernoV1.KyvernoV1Interface, coreClient *core.Client, cache *gocache.Cache[string, []sdk.PolicyListItem]) Client {
 	return &client{metaClient, dynamicClient, kclient, coreClient, cache}
 }
