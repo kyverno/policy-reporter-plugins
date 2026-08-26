@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	gocache "github.com/patrickmn/go-cache"
+	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
 	"go.uber.org/zap"
 	"k8s.io/client-go/dynamic"
 	k8s "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/metadata"
 	"k8s.io/client-go/rest"
+	gocache "zgo.at/zcache/v2"
 
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
 	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v1"
@@ -161,7 +162,7 @@ func (r *Resolver) KyvernoClient() (pol.Client, error) {
 		return nil, err
 	}
 
-	r.kyvernoClient = pol.NewClient(m, d, k, c, gocache.New(15*time.Second, 5*time.Second))
+	r.kyvernoClient = pol.NewClient(m, d, k, c, gocache.New[string, []sdk.PolicyListItem](15*time.Second, 5*time.Second))
 
 	return r.kyvernoClient, nil
 }
@@ -205,7 +206,7 @@ func (r *Resolver) VPOLClient() (vpol.Client, error) {
 		return nil, err
 	}
 
-	r.vpolClient = vpol.NewClient(m, d, k, c, gocache.New(15*time.Second, 5*time.Second))
+	r.vpolClient = vpol.NewClient(m, d, k, c, gocache.New[string, []sdk.PolicyListItem](15*time.Second, 5*time.Second))
 
 	return r.vpolClient, nil
 }
@@ -235,7 +236,7 @@ func (r *Resolver) IVPOLClient() (ivpol.Client, error) {
 		return nil, err
 	}
 
-	r.ivpolClient = ivpol.NewClient(m, d, k.ImageValidatingPolicies(), c, gocache.New(15*time.Second, 5*time.Second))
+	r.ivpolClient = ivpol.NewClient(m, d, k.ImageValidatingPolicies(), c, gocache.New[string, []sdk.PolicyListItem](15*time.Second, 5*time.Second))
 
 	return r.ivpolClient, nil
 }
