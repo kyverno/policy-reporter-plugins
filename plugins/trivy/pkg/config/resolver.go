@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	gocache "github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
 	"k8s.io/client-go/dynamic"
 	k8s "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/metadata"
 	"k8s.io/client-go/rest"
+	gocache "zgo.at/zcache/v2"
 
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/core"
@@ -257,7 +257,7 @@ func (r *Resolver) VulnrService() (*vulnr.Service, error) {
 		return nil, err
 	}
 
-	return vulnr.New(cve, db, r.GHClient(), gocache.New(24*time.Hour, 1*time.Hour)), nil
+	return vulnr.New(cve, db, r.GHClient(), gocache.New[string, *vulnr.Vulnerability](24*time.Hour, 1*time.Hour)), nil
 }
 
 func NewResolver(config *Config) Resolver {

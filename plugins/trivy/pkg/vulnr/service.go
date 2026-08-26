@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	gocache "github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
+	gocache "zgo.at/zcache/v2"
 
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/cveawg"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/gh"
@@ -15,12 +15,12 @@ type Service struct {
 	cveAPI   *cveawg.Client
 	db       *Database
 	ghClient *gh.Client
-	cache    *gocache.Cache
+	cache    *gocache.Cache[string, *Vulnerability]
 }
 
 func (s *Service) Get(ctx context.Context, name string) (*Vulnerability, error) {
 	if cached, ok := s.cache.Get(name); ok {
-		return cached.(*Vulnerability), nil
+		return cached, nil
 	}
 
 	var details *Vulnerability
@@ -53,14 +53,14 @@ func (s *Service) Get(ctx context.Context, name string) (*Vulnerability, error) 
 		details = MapFromTrivyDB(name, trivyCVE)
 	}
 
-	s.cache.Set(name, details, gocache.DefaultExpiration)
+	s.cache.Set(name, details)
 
 	return details, nil
 }
 
 func (s *Service) GetDescription(ctx context.Context, name string) (*Vulnerability, error) {
 	if cached, ok := s.cache.Get("list/" + name); ok {
-		return cached.(*Vulnerability), nil
+		return cached, nil
 	}
 
 	if s.ghClient != nil && strings.HasPrefix(name, "GHSA") {
@@ -71,14 +71,14 @@ func (s *Service) GetDescription(ctx context.Context, name string) (*Vulnerabili
 
 		zap.L().Debug("got vulnr details from github api", zap.String("cve", name))
 		details := MapSecurityAdvisory(ghsa)
-		s.cache.Set("list/"+name, details, gocache.DefaultExpiration)
+		s.cache.Set("list/"+name, details)
 
 		return details, nil
 	}
 
 	if trivyCVE, err := s.db.Get(name); trivyCVE != nil {
 		details := MapFromTrivyDB(name, trivyCVE)
-		s.cache.Set("list/"+name, details, gocache.DefaultExpiration)
+		s.cache.Set("list/"+name, details)
 		zap.L().Debug("got vulnr details from trivy db, skip api call", zap.String("cve", name))
 
 		return details, nil
@@ -101,11 +101,11 @@ func (s *Service) GetDescription(ctx context.Context, name string) (*Vulnerabili
 
 	zap.L().Debug("got vulnr details from CVEAWG API", zap.String("cve", name))
 	details := MapFromAPI(name, cve)
-	s.cache.Set("list/"+name, details, gocache.DefaultExpiration)
+	s.cache.Set("list/"+name, details)
 
 	return details, nil
 }
 
-func New(cveAPI *cveawg.Client, db *Database, ghClient *gh.Client, cache *gocache.Cache) *Service {
+func New(cveAPI *cveawg.Client, db *Database, ghClient *gh.Client, cache *gocache.Cache[string, *Vulnerability]) *Service {
 	return &Service{cveAPI, db, ghClient, cache}
 }
