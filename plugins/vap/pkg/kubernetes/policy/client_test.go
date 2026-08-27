@@ -35,7 +35,7 @@ func TestGetPolicies_MapsAnnotationsToPolicyListItem(t *testing.T) {
 		DescriptionAnnotation: "requires a team label",
 	}))
 
-	client := NewClient(lister)
+	client := NewClient(lister, Defaults{})
 
 	list, err := client.GetPolicies(context.Background())
 	require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestGetPolicies_MapsAnnotationsToPolicyListItem(t *testing.T) {
 func TestGetPolicies_TitleFallsBackToTitleCasedName(t *testing.T) {
 	lister := newLister(t, policyWithAnnotations("require-team-label", nil))
 
-	client := NewClient(lister)
+	client := NewClient(lister, Defaults{})
 
 	list, err := client.GetPolicies(context.Background())
 	require.NoError(t, err)
@@ -62,20 +62,50 @@ func TestGetPolicies_TitleFallsBackToTitleCasedName(t *testing.T) {
 	assert.Equal(t, "Require-Team-Label", list[0].Title)
 }
 
-func TestGetPolicies_CategoryDefaultsToOther(t *testing.T) {
+func TestGetPolicies_FallsBackToConfiguredDefaultsWhenNoAnnotation(t *testing.T) {
 	lister := newLister(t, policyWithAnnotations("require-team-label", nil))
 
-	client := NewClient(lister)
+	client := NewClient(lister, Defaults{Severity: "medium", Category: "best-practices"})
 
 	list, err := client.GetPolicies(context.Background())
 	require.NoError(t, err)
 	require.Len(t, list, 1)
 
-	assert.Equal(t, "Other", list[0].Category)
+	assert.Equal(t, "medium", list[0].Severity)
+	assert.Equal(t, "best-practices", list[0].Category)
+}
+
+func TestGetPolicies_AnnotationOverridesConfiguredDefaults(t *testing.T) {
+	lister := newLister(t, policyWithAnnotations("require-team-label", map[string]string{
+		SeverityAnnotation: "high",
+		CategoryAnnotation: "compliance",
+	}))
+
+	client := NewClient(lister, Defaults{Severity: "medium", Category: "best-practices"})
+
+	list, err := client.GetPolicies(context.Background())
+	require.NoError(t, err)
+	require.Len(t, list, 1)
+
+	assert.Equal(t, "high", list[0].Severity)
+	assert.Equal(t, "compliance", list[0].Category)
+}
+
+func TestGetPolicies_EmptyWhenNoAnnotationAndNoConfiguredDefault(t *testing.T) {
+	lister := newLister(t, policyWithAnnotations("require-team-label", nil))
+
+	client := NewClient(lister, Defaults{})
+
+	list, err := client.GetPolicies(context.Background())
+	require.NoError(t, err)
+	require.Len(t, list, 1)
+
+	assert.Empty(t, list[0].Severity)
+	assert.Empty(t, list[0].Category)
 }
 
 func TestGetPolicies_NilListerReturnsError(t *testing.T) {
-	client := NewClient(nil)
+	client := NewClient(nil, Defaults{})
 
 	_, err := client.GetPolicies(context.Background())
 	assert.Error(t, err)
@@ -101,7 +131,7 @@ func TestGetPolicy_MapsSpecAndAnnotations(t *testing.T) {
 		ParamKind: &admissionregistrationv1.ParamKind{Kind: "ConfigMap", APIVersion: "v1"},
 	}
 
-	client := NewClient(newLister(t, policy))
+	client := NewClient(newLister(t, policy), Defaults{})
 
 	details, err := client.GetPolicy(context.Background(), "require-team-label")
 	require.NoError(t, err)
@@ -123,10 +153,35 @@ func TestGetPolicy_MapsSpecAndAnnotations(t *testing.T) {
 	assert.Contains(t, details.SourceCode.Content, "require-team-label")
 }
 
+func TestGetPolicy_FallsBackToConfiguredDefaultsWhenNoAnnotation(t *testing.T) {
+	policy := policyWithAnnotations("require-team-label", nil)
+
+	client := NewClient(newLister(t, policy), Defaults{Severity: "medium", Category: "best-practices"})
+
+	details, err := client.GetPolicy(context.Background(), "require-team-label")
+	require.NoError(t, err)
+	assert.Equal(t, "medium", details.Severity)
+	assert.Equal(t, "best-practices", details.Category)
+}
+
+func TestGetPolicy_AnnotationOverridesConfiguredDefaults(t *testing.T) {
+	policy := policyWithAnnotations("require-team-label", map[string]string{
+		SeverityAnnotation: "high",
+		CategoryAnnotation: "compliance",
+	})
+
+	client := NewClient(newLister(t, policy), Defaults{Severity: "medium", Category: "best-practices"})
+
+	details, err := client.GetPolicy(context.Background(), "require-team-label")
+	require.NoError(t, err)
+	assert.Equal(t, "high", details.Severity)
+	assert.Equal(t, "compliance", details.Category)
+}
+
 func TestGetPolicy_FailurePolicyDefaultsToFailWhenUnset(t *testing.T) {
 	policy := policyWithAnnotations("require-team-label", nil)
 
-	client := NewClient(newLister(t, policy))
+	client := NewClient(newLister(t, policy), Defaults{})
 
 	details, err := client.GetPolicy(context.Background(), "require-team-label")
 	require.NoError(t, err)
@@ -136,7 +191,7 @@ func TestGetPolicy_FailurePolicyDefaultsToFailWhenUnset(t *testing.T) {
 func TestGetPolicy_TitleFallsBackToName(t *testing.T) {
 	policy := policyWithAnnotations("require-team-label", nil)
 
-	client := NewClient(newLister(t, policy))
+	client := NewClient(newLister(t, policy), Defaults{})
 
 	details, err := client.GetPolicy(context.Background(), "require-team-label")
 	require.NoError(t, err)
@@ -146,7 +201,7 @@ func TestGetPolicy_TitleFallsBackToName(t *testing.T) {
 func TestGetPolicy_TrimsLeadingSlashFromPathParam(t *testing.T) {
 	policy := policyWithAnnotations("require-team-label", nil)
 
-	client := NewClient(newLister(t, policy))
+	client := NewClient(newLister(t, policy), Defaults{})
 
 	details, err := client.GetPolicy(context.Background(), "/require-team-label")
 	require.NoError(t, err)
@@ -154,14 +209,14 @@ func TestGetPolicy_TrimsLeadingSlashFromPathParam(t *testing.T) {
 }
 
 func TestGetPolicy_NotFound(t *testing.T) {
-	client := NewClient(newLister(t))
+	client := NewClient(newLister(t), Defaults{})
 
 	_, err := client.GetPolicy(context.Background(), "does-not-exist")
 	require.Error(t, err)
 }
 
 func TestGetPolicy_NilListerReturnsError(t *testing.T) {
-	client := NewClient(nil)
+	client := NewClient(nil, Defaults{})
 
 	_, err := client.GetPolicy(context.Background(), "require-team-label")
 	assert.Error(t, err)

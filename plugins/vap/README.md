@@ -207,6 +207,13 @@ metadata:
 name when absent; `vap.kubernetes.io/subject` is a comma-separated list
 shown as the policy's engine subjects.
 
+A policy's listed severity/category falls back to the app-wide
+`report.severity`/`report.category` config when it has no
+`vap.kubernetes.io/severity`/`vap.kubernetes.io/category` annotation of its
+own - the same fallback applied to that policy's actual ReportResults (see
+"Result severity & category" above), so what the plugin API shows always
+matches what's reported.
+
 Optional HTTP basic auth for this listener is configured under `api.basicAuth`
 (`deploy/config.example.yaml`) - both `username` and `password` must be set
 for it to take effect.

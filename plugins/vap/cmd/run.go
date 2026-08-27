@@ -127,7 +127,10 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 	if policyMeta != nil {
 		policyLister = policyMeta.Lister()
 	}
-	policyClient := policy.NewClient(policyLister)
+	policyClient := policy.NewClient(policyLister, policy.Defaults{
+		Severity: cfg.Report.Severity,
+		Category: cfg.Report.Category,
+	})
 
 	apiServer, err := newPluginAPIServer(cfg, policyClient)
 	if err != nil {

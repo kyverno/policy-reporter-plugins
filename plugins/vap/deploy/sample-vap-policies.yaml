@@ -52,7 +52,9 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: require-owner-label
   annotations:
-    vap.kubernetes.io/category: best-practices
+    vap.kubernetes.io/title: Require Owner Label
+    vap.kubernetes.io/category: Best Practices
+    vap.kubernetes.io/description: Requires a non-empty 'owner' label
 spec:
   failurePolicy: Fail
   matchConstraints:

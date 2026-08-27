@@ -27,6 +27,17 @@ const (
 	SubjectAnnotation = "vap.kubernetes.io/subject"
 )
 
+// Defaults are the app-wide severity/category (config Report.Severity /
+// Report.Category) applied to a policy that has neither
+// SeverityAnnotation nor CategoryAnnotation set - the same fallback the
+// audit webhook path applies to a ReportResult built from that policy's
+// failures (see report.Client.Upsert), so a policy's listed severity/
+// category always matches what actually lands in its ReportResults.
+type Defaults struct {
+	Severity string
+	Category string
+}
+
 // Client exposes ValidatingAdmissionPolicy data in the shape the Policy
 // Reporter plugin API contract expects (see sdk/api.Client).
 type Client interface {
@@ -39,7 +50,8 @@ type Client interface {
 // local cache already avoids per-request KubeAPI traffic, so a separate
 // TTL cache on top of it would just be a second, redundant cache.
 type client struct {
-	lister admissionregistrationv1listers.ValidatingAdmissionPolicyLister
+	lister   admissionregistrationv1listers.ValidatingAdmissionPolicyLister
+	defaults Defaults
 }
 
 // NewClient builds a Client backed by lister - the same
@@ -47,9 +59,10 @@ type client struct {
 // plugin API reuses the app's one ValidatingAdmissionPolicy informer instead
 // of starting a second one. lister may be nil (e.g. when the informer failed
 // to sync at startup - see MetadataLookup), in which case both methods
-// return an error instead of panicking.
-func NewClient(lister admissionregistrationv1listers.ValidatingAdmissionPolicyLister) Client {
-	return &client{lister: lister}
+// return an error instead of panicking. defaults is used whenever a policy
+// has no SeverityAnnotation/CategoryAnnotation of its own.
+func NewClient(lister admissionregistrationv1listers.ValidatingAdmissionPolicyLister, defaults Defaults) Client {
+	return &client{lister: lister, defaults: defaults}
 }
 
 func (c *client) GetPolicies(_ context.Context) ([]sdk.PolicyListItem, error) {
@@ -71,8 +84,8 @@ func (c *client) GetPolicies(_ context.Context) ([]sdk.PolicyListItem, error) {
 		return sdk.PolicyListItem{
 			Title:       title,
 			Name:        p.Name,
-			Category:    utils.Defaults(p.Annotations[CategoryAnnotation], "Other"),
-			Severity:    p.Annotations[SeverityAnnotation],
+			Category:    utils.Defaults(p.Annotations[CategoryAnnotation], c.defaults.Category),
+			Severity:    utils.Defaults(p.Annotations[SeverityAnnotation], c.defaults.Severity),
 			Description: p.Annotations[DescriptionAnnotation],
 		}
 	}), nil
@@ -88,7 +101,7 @@ func (c *client) GetPolicy(_ context.Context, name string) (*sdk.Policy, error) 
 		return nil, fmt.Errorf("getting validatingadmissionpolicy %s: %w", name, err)
 	}
 
-	details := mapPolicy(p)
+	details := mapPolicy(p, c.defaults)
 
 	if details.Title == "" {
 		details.Title = details.Name
@@ -98,8 +111,9 @@ func (c *client) GetPolicy(_ context.Context, name string) (*sdk.Policy, error) 
 }
 
 // mapPolicy converts a ValidatingAdmissionPolicy into the sdk.Policy shape
-// the plugin API returns.
-func mapPolicy(p *admissionregistrationv1.ValidatingAdmissionPolicy) *sdk.Policy {
+// the plugin API returns. defaults fills in the severity/category when the
+// policy has no annotation override of its own.
+func mapPolicy(p *admissionregistrationv1.ValidatingAdmissionPolicy, defaults Defaults) *sdk.Policy {
 	details := &sdk.Policy{
 		Name: p.Name,
 		SourceCode: &sdk.SourceCode{
@@ -109,8 +123,8 @@ func mapPolicy(p *admissionregistrationv1.ValidatingAdmissionPolicy) *sdk.Policy
 		Engine: &sdk.Engine{
 			Name: "ValidatingAdmissionPolicy",
 		},
-		Category:    p.Annotations[CategoryAnnotation],
-		Severity:    p.Annotations[SeverityAnnotation],
+		Category:    utils.Defaults(p.Annotations[CategoryAnnotation], defaults.Category),
+		Severity:    utils.Defaults(p.Annotations[SeverityAnnotation], defaults.Severity),
 		Description: p.Annotations[DescriptionAnnotation],
 	}
 
