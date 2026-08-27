@@ -1,0 +1,16 @@
+{{- if .Values.tls.certManager.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "vap-plugin.fullname" . }}-tls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vap-plugin.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "vap-plugin.fullname" . }}-tls
+  dnsNames:
+    - {{ include "vap-plugin.fullname" . }}.{{ .Release.Namespace }}.svc
+  issuerRef:
+    name: {{ .Values.tls.certManager.issuerRef.name }}
+    kind: {{ .Values.tls.certManager.issuerRef.kind }}
+{{- end }}

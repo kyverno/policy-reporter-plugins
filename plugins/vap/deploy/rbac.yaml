@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vap-plugin
+  namespace: vap-plugin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vap-plugin
+rules:
+  # Resolves resource -> kind for building Report.scope
+  # (pkg/kubernetes/mapper). Discovery only, not access to any object data;
+  # usually already granted cluster-wide via the default system:discovery
+  # ClusterRole, but listed explicitly here for a self-contained RBAC review.
+  - nonResourceURLs: ["/apis", "/apis/*", "/api", "/api/*"]
+    verbs: ["get"]
+  # Referenced for policy/binding metadata; also required outright if/when
+  # Phase 2 "pass" reporting is implemented (see plan).
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingadmissionpolicies", "validatingadmissionpolicybindings"]
+    verbs: ["get", "list", "watch"]
+  # Backfills a resource's UID (for Report OwnerReference) when the audit
+  # event didn't carry one - the common case, see pkg/kubernetes/report's
+  # withLiveUID. Pods is the default since it's what VAP most commonly
+  # targets; add get on any other resource type your policies match so its
+  # reports get owner references too - without it, this app still works,
+  # those reports just rely solely on the TTL sweep for cleanup.
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get"]
+  - apiGroups: ["openreports.io"]
+    resources: ["reports", "clusterreports"]
+    verbs: ["get", "list", "create", "update"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "create", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vap-plugin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vap-plugin
+subjects:
+  - kind: ServiceAccount
+    name: vap-plugin
+    namespace: vap-plugin

@@ -1,0 +1,62 @@
+image:
+  repository: ghcr.io/kyverno/vap-plugin
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 8443
+  # Fixed ClusterIP, needed when the audit-webhook-config-file kubeconfig
+  # (server URL) must be generated before the Service exists - e.g. local
+  # kind clusters wired at cluster-creation time, see scripts/setup.sh.
+  # Leave empty for a normal auto-assigned ClusterIP.
+  clusterIP: ""
+
+# TLS is required: the Kubernetes audit webhook backend only accepts HTTPS.
+# Either point certManager at an Issuer you control, or set
+# tls.existingSecret to a pre-provisioned TLS secret with tls.crt/tls.key.
+tls:
+  certManager:
+    enabled: false
+    issuerRef:
+      name: ""
+      kind: ClusterIssuer
+  existingSecret: ""
+
+rbac:
+  extraResources: []
+
+config:
+  webhook:
+    bufferSize: 1000
+    workers: 4
+  report:
+    severity: ""
+    category: ""
+    labels: {}
+    annotations: {}
+    # Whether Deny-action results (requests Kubernetes actually blocked)
+    # are persisted at all - see deploy/config.example.yaml for the
+    # rationale behind defaulting to false.
+    reportDenied: false
+  leaderElection:
+    enabled: false
+  reconcile:
+    interval: 10m
+    orphanTTL: 24h
+  logging:
+    level: info
+    development: false
+
+resources: {}
+  # limits:
+  #   memory: 100Mi
+  #   cpu: 10m
+  # requests:
+  #   memory: 75Mi
+  #   cpu: 5m
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

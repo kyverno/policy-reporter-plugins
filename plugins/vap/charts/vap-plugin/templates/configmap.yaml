@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vap-plugin.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vap-plugin.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    server:
+      port: 8443
+      tlsCertFile: /etc/vap-plugin/tls/tls.crt
+      tlsKeyFile: /etc/vap-plugin/tls/tls.key
+    webhook:
+      bufferSize: {{ .Values.config.webhook.bufferSize }}
+      workers: {{ .Values.config.webhook.workers }}
+    report:
+      severity: {{ .Values.config.report.severity | quote }}
+      category: {{ .Values.config.report.category | quote }}
+      labels:
+        {{- toYaml .Values.config.report.labels | nindent 8 }}
+      annotations:
+        {{- toYaml .Values.config.report.annotations | nindent 8 }}
+      reportDenied: {{ .Values.config.report.reportDenied }}
+    leaderElection:
+      enabled: {{ .Values.config.leaderElection.enabled }}
+      namespace: {{ .Release.Namespace }}
+      leaseName: {{ include "vap-plugin.fullname" . }}
+    reconcile:
+      interval: {{ .Values.config.reconcile.interval }}
+      orphanTTL: {{ .Values.config.reconcile.orphanTTL }}
+    logging:
+      level: {{ .Values.config.logging.level }}
+      development: {{ .Values.config.logging.development }}

@@ -1,0 +1,39 @@
+server:
+  port: 8443
+  tlsCertFile: /etc/vap-plugin/tls/tls.crt
+  tlsKeyFile: /etc/vap-plugin/tls/tls.key
+
+webhook:
+  bufferSize: 1000
+  workers: 4
+
+report:
+  severity: ""
+  category: ""
+  labels: {}
+  annotations: {}
+  # Whether Deny-action results (requests Kubernetes actually blocked) are
+  # persisted at all. Defaults to false: a Deny already surfaces to the
+  # caller as a rejected request, so by default only Audit-action results -
+  # allowed through silently otherwise - are reported. Set to true to also
+  # report Deny-action results. This is a whole-event decision: when false,
+  # an audit event containing a Deny result is dropped entirely, including
+  # any Audit-action result recorded alongside it in that same event - see
+  # README "Reporting Deny results".
+  reportDenied: false
+
+leaderElection:
+  enabled: true
+  namespace: vap-plugin
+  leaseName: vap-plugin
+
+reconcile:
+  interval: 10m
+  # How long an ownerless managed report (the common case - see README) can
+  # go without a new audit event touching it before it's assumed stale and
+  # deleted.
+  orphanTTL: 24h
+
+logging:
+  level: info
+  development: false

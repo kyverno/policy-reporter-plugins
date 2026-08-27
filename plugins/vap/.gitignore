@@ -1,0 +1,7 @@
+/vap-plugin
+/dist/
+*.test
+.DS_Store
+/.claude/
+/.local/
+/test*.yaml
