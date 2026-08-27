@@ -22,6 +22,10 @@ report:
   # README "Reporting Deny results".
   reportDenied: false
 
+# The reconcile sweep (see below) always runs. leaderElection only decides
+# whether it's coordinated to a single replica via a Lease - required when
+# running more than one replica, since otherwise every replica would sweep
+# independently. Leave disabled for a single-replica deployment.
 leaderElection:
   enabled: true
   namespace: vap-plugin

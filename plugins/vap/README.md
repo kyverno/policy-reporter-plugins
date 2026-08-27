@@ -26,10 +26,13 @@ pkg/kubernetes/report   upserts the Report/ClusterReport that scopes
                          the audited resource
 ```
 
-A leader-elected periodic sweep (`pkg/kubernetes/reconcile`) cleans up
-reports whose target resource is gone and reconciles labels/annotations
-after a config change - see "Report lifecycle" below for why this, rather
-than Kubernetes' built-in garbage collection, is the primary cleanup path.
+A periodic sweep (`pkg/kubernetes/reconcile`) cleans up reports whose target
+resource is gone and reconciles labels/annotations after a config change -
+see "Report lifecycle" below for why this, rather than Kubernetes' built-in
+garbage collection, is the primary cleanup path. It always runs; with
+`leaderElection.enabled`, it's coordinated to a single replica via a Lease
+(required when running more than one replica, otherwise every replica
+sweeps independently).
 
 ## What's observable in the audit log
 
@@ -68,20 +71,11 @@ re-evaluated) is dropped, not carried forward as stale history. This also
 means one `Get`/`Update` round trip persists an entire event's worth of
 results, not one per individual policy result.
 
-The original design assumed a resource's UID (needed to set an
-`OwnerReference`, so Kubernetes garbage-collects the report when its
-resource is deleted) would be available whenever the resource already
-exists - e.g. for Update/Delete audit events. **This turned out to be
-false**: verified against a real cluster, `objectRef.uid` is absent from the
-audit event for ordinary create/update/delete requests on the primary
-resource; it's only populated for subresource requests (`status`,
-`binding`) that already know the object's identity.
-
-So when a Report is created for a resource with no UID on its audit event,
+When a Report is created,
 `pkg/kubernetes/report` does a live `GET` of that resource via the dynamic
-client (`Client.withLiveUID`) and uses the real UID from there instead. This
+client and uses the real UID from there. This
 covers the common case (the resource exists and RBAC permits reading it -
-by default just `pods`, see `rbac.getResources` / `deploy/rbac.yaml`, since
+by default just `pods`, see `rbac.extraResources` / `deploy/rbac.yaml`, since
 that's what VAP most commonly targets; add any other resource type your
 policies match). This lookup only runs when the whole batch is Audit-only:
 if any result in it is Deny, the overall request was rejected (VAP denies
@@ -98,10 +92,10 @@ lookup would.
 `OwnerReference` is therefore best-effort, not the primary cleanup
 mechanism: it can't cover every case, so it isn't relied on alone. Every
 upsert also stamps a `vap-plugin.io/last-observed` annotation, and the
-leader-elected reconcile sweep deletes any ownerless managed report that
-hasn't been touched within a configurable TTL (default 24h, see
-`reconcile.orphanTTL`) - the one mechanism that covers every case,
-including the ones OwnerReference can't.
+reconcile sweep deletes any ownerless managed report that hasn't been
+touched within a configurable TTL (default 24h, see `reconcile.orphanTTL`) -
+the one mechanism that covers every case, including the ones OwnerReference
+can't.
 
 ## Reporting Deny results
 

@@ -112,9 +112,7 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 	webhookServer := webhook.NewServer(reportClient, log, cfg.Webhook.BufferSize, cfg.Report.ReportDenied)
 	go webhookServer.Run(ctx, cfg.Webhook.Workers)
 
-	if cfg.LeaderElection.Enabled {
-		go startReconciliation(ctx, cfg, kubeClient, reportsClient, log)
-	}
+	go startReconciliation(ctx, cfg, kubeClient, reportsClient, log)
 
 	// Reuses policyMeta's own ValidatingAdmissionPolicy informer/lister
 	// (see policy.MetadataLookup) instead of starting a second informer or
@@ -195,10 +193,18 @@ func newPolicyMetadataLookup(ctx context.Context, kubeClient kubernetes.Interfac
 }
 
 // startReconciliation runs the periodic orphan-TTL sweep and label
-// reconciliation (see pkg/kubernetes/reconcile) on whichever replica holds
-// the leader election lease. Blocks until ctx is cancelled.
+// reconciliation (see pkg/kubernetes/reconcile). With leader election
+// enabled, it only runs on whichever replica holds the lease; with it
+// disabled, it runs directly on this replica (suitable for single-replica
+// deployments, where coordinating a lease would be pure overhead). Blocks
+// until ctx is cancelled.
 func startReconciliation(ctx context.Context, cfg appconfig.Config, kubeClient kubernetes.Interface, reportsClient openreportsclient.Interface, log *zap.Logger) {
 	sweeper := reconcile.NewSweeper(reportsClient, cfg.Report.Labels, cfg.Report.Annotations, cfg.Reconcile.OrphanTTL, log)
+
+	if !cfg.LeaderElection.Enabled {
+		sweeper.Run(ctx, cfg.Reconcile.Interval)
+		return
+	}
 
 	leCfg := leaderelection.Config{
 		Namespace:     cfg.LeaderElection.Namespace,
