@@ -5,17 +5,15 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/builder"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/policy"
+	"github.com/openreports/reports-api/pkg/client/clientset/versioned/fake"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-
-	"github.com/openreports/reports-api/pkg/client/clientset/versioned/fake"
-
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/builder"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/policy"
 )
 
 // staticMapper is a test double for mapper.Mapper that always resolves to a

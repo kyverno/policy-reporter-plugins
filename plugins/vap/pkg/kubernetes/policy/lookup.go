@@ -8,10 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
-
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -79,6 +78,14 @@ func NewMetadataLookup(ctx context.Context, client kubernetes.Interface, syncTim
 	}
 
 	return &MetadataLookup{lister: informer.Lister()}, nil
+}
+
+// Lister returns the shared informer-backed lister backing this
+// MetadataLookup, so other consumers (e.g. the plugin API's policy.Client)
+// can reuse the same local cache instead of hitting the KubeAPI directly or
+// maintaining a second cache of their own.
+func (m *MetadataLookup) Lister() admissionregistrationv1listers.ValidatingAdmissionPolicyLister {
+	return m.lister
 }
 
 // MetadataFor returns the named policy's Metadata (severity and category), and

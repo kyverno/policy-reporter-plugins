@@ -9,19 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/cobra"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/metadata"
-	gocache "zgo.at/zcache/v2"
-
-	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
-	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
-	openreportsclient "github.com/openreports/reports-api/pkg/client/clientset/versioned"
-
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/builder"
 	appconfig "github.com/kyverno/policy-reporter/vap-plugin/pkg/config"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/leaderelection"
@@ -33,6 +20,15 @@ import (
 	pluginserver "github.com/kyverno/policy-reporter/vap-plugin/pkg/server"
 	apiv1 "github.com/kyverno/policy-reporter/vap-plugin/pkg/server/v1"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/webhook"
+	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
+	openreportsclient "github.com/openreports/reports-api/pkg/client/clientset/versioned"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
+	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
 )
 
 func newRunCommand() *cobra.Command {
@@ -119,12 +115,18 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 		go startReconciliation(ctx, cfg, kubeClient, reportsClient, log)
 	}
 
-	metaClient, err := metadata.NewForConfig(restConfig)
-	if err != nil {
-		return fmt.Errorf("building metadata client: %w", err)
+	// Reuses policyMeta's own ValidatingAdmissionPolicy informer/lister
+	// (see policy.MetadataLookup) instead of starting a second informer or
+	// issuing separate KubeAPI calls per request - the informer's local
+	// cache already makes a request-level cache redundant. A nil policyMeta
+	// (its sync failed at startup - see newPolicyMetadataLookup) yields a
+	// nil lister; policy.Client returns an error from its methods in that
+	// case rather than panicking.
+	var policyLister admissionregistrationv1listers.ValidatingAdmissionPolicyLister
+	if policyMeta != nil {
+		policyLister = policyMeta.Lister()
 	}
-
-	policyClient := policy.NewClient(metaClient, dynamicClient, gocache.New[string, []sdk.PolicyListItem](15*time.Second, 5*time.Second))
+	policyClient := policy.NewClient(policyLister)
 
 	apiServer, err := newPluginAPIServer(cfg, policyClient)
 	if err != nil {

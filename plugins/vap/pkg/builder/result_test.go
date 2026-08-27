@@ -4,10 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
 )
 
 func TestBuild_Deny(t *testing.T) {

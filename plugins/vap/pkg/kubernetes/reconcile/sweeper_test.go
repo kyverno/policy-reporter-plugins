@@ -5,15 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/report"
+	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
+	"github.com/openreports/reports-api/pkg/client/clientset/versioned/fake"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
-	"github.com/openreports/reports-api/pkg/client/clientset/versioned/fake"
-
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/report"
 )
 
 func managedReport(name string, age time.Duration, owned bool) *openreportsv1alpha1.Report {

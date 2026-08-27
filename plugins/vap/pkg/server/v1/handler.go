@@ -13,10 +13,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	k8serror "k8s.io/apimachinery/pkg/api/errors"
-
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/policy"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/server"
+	k8serror "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type APIHandler struct {

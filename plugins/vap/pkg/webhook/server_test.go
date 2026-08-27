@@ -10,13 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
-
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
 )
 
 // recordingPersister records each Upsert call as one Event (results

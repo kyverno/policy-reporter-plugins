@@ -22,7 +22,6 @@ require (
 	k8s.io/apiserver v0.36.4
 	k8s.io/client-go v0.36.4
 	sigs.k8s.io/yaml v1.6.0
-	zgo.at/zcache/v2 v2.4.1
 )
 
 require (

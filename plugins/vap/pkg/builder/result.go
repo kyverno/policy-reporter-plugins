@@ -7,10 +7,9 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
 	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
 )
 
 // Source identifies this application as the producer of the ReportResult,

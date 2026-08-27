@@ -6,25 +6,13 @@ import (
 	"strings"
 
 	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
-	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/metadata"
-	gocache "zgo.at/zcache/v2"
-
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/utils"
+	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
 )
 
-// policySchema is the GroupVersionResource for ValidatingAdmissionPolicy,
-// which - unlike Kyverno's policy CRDs - is cluster-scoped only; there is no
-// namespaced variant to also list/get.
-var policySchema = admissionregistrationv1.SchemeGroupVersion.WithResource("validatingadmissionpolicies")
-
 const (
-	// KeyListCache is the cache key GetPolicies stores its result list
-	// under.
-	KeyListCache = "validatingadmissionpolicies"
-
 	// TitleAnnotation, set on a ValidatingAdmissionPolicy, provides a
 	// human-readable title for the Policy Reporter plugin API. Falls back
 	// to a title-cased version of the policy name when absent.
@@ -45,32 +33,35 @@ type Client interface {
 	GetPolicy(ctx context.Context, name string) (*sdk.Policy, error)
 }
 
+// client reads from the same informer-backed lister MetadataLookup uses
+// (see NewClient) rather than issuing its own KubeAPI calls: the informer's
+// local cache already avoids per-request KubeAPI traffic, so a separate
+// TTL cache on top of it would just be a second, redundant cache.
 type client struct {
-	metaClient    metadata.Interface
-	dynamicClient dynamic.Interface
-	cache         *gocache.Cache[string, []sdk.PolicyListItem]
+	lister admissionregistrationv1listers.ValidatingAdmissionPolicyLister
 }
 
-// NewClient builds a Client backed by the given metadata and dynamic
-// clients. cache may be nil, in which case GetPolicies always hits the
-// KubeAPI.
-func NewClient(metaClient metadata.Interface, dynamicClient dynamic.Interface, cache *gocache.Cache[string, []sdk.PolicyListItem]) Client {
-	return &client{metaClient: metaClient, dynamicClient: dynamicClient, cache: cache}
+// NewClient builds a Client backed by lister - the same
+// ValidatingAdmissionPolicyLister exposed by MetadataLookup.Lister(), so the
+// plugin API reuses the app's one ValidatingAdmissionPolicy informer instead
+// of starting a second one. lister may be nil (e.g. when the informer failed
+// to sync at startup - see MetadataLookup), in which case both methods
+// return an error instead of panicking.
+func NewClient(lister admissionregistrationv1listers.ValidatingAdmissionPolicyLister) Client {
+	return &client{lister: lister}
 }
 
-func (c *client) GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error) {
-	if c.cache != nil {
-		if list, ok := c.cache.Get(KeyListCache); ok {
-			return list, nil
-		}
+func (c *client) GetPolicies(_ context.Context) ([]sdk.PolicyListItem, error) {
+	if c.lister == nil {
+		return nil, fmt.Errorf("validatingadmissionpolicy lister not available")
 	}
 
-	list, err := c.metaClient.Resource(policySchema).List(ctx, v1.ListOptions{})
+	list, err := c.lister.List(labels.Everything())
 	if err != nil {
 		return nil, fmt.Errorf("listing validatingadmissionpolicies: %w", err)
 	}
 
-	policies := utils.Map(list.Items, func(p v1.PartialObjectMetadata) sdk.PolicyListItem {
+	return utils.Map(list, func(p *admissionregistrationv1.ValidatingAdmissionPolicy) sdk.PolicyListItem {
 		title := p.Annotations[TitleAnnotation]
 		if title == "" {
 			title = utils.Title(p.Name)
@@ -83,24 +74,20 @@ func (c *client) GetPolicies(ctx context.Context) ([]sdk.PolicyListItem, error) 
 			Severity:    p.Annotations[SeverityAnnotation],
 			Description: p.Annotations[DescriptionAnnotation],
 		}
-	})
-
-	if c.cache != nil {
-		c.cache.Set(KeyListCache, policies)
-	}
-
-	return policies, nil
+	}), nil
 }
 
-func (c *client) GetPolicy(ctx context.Context, name string) (*sdk.Policy, error) {
-	name = strings.TrimPrefix(name, "/")
+func (c *client) GetPolicy(_ context.Context, name string) (*sdk.Policy, error) {
+	if c.lister == nil {
+		return nil, fmt.Errorf("validatingadmissionpolicy lister not available")
+	}
 
-	unstr, err := c.dynamicClient.Resource(policySchema).Get(ctx, name, v1.GetOptions{})
+	p, err := c.lister.Get(strings.TrimPrefix(name, "/"))
 	if err != nil {
 		return nil, fmt.Errorf("getting validatingadmissionpolicy %s: %w", name, err)
 	}
 
-	details := mapPolicy(unstr.Object)
+	details := mapPolicy(p)
 
 	if details.Title == "" {
 		details.Title = details.Name
@@ -109,62 +96,62 @@ func (c *client) GetPolicy(ctx context.Context, name string) (*sdk.Policy, error
 	return details, nil
 }
 
-// mapPolicy converts an unstructured ValidatingAdmissionPolicy's content
-// into the sdk.Policy shape the plugin API returns.
-func mapPolicy(policy map[string]any) *sdk.Policy {
+// mapPolicy converts a ValidatingAdmissionPolicy into the sdk.Policy shape
+// the plugin API returns.
+func mapPolicy(p *admissionregistrationv1.ValidatingAdmissionPolicy) *sdk.Policy {
 	details := &sdk.Policy{
+		Name: p.Name,
 		SourceCode: &sdk.SourceCode{
 			ContentType: "yaml",
-			Content:     mapContent(policy),
+			Content:     mapContent(p),
 		},
 		Engine: &sdk.Engine{
 			Name: "ValidatingAdmissionPolicy",
 		},
+		Category:    p.Annotations[CategoryAnnotation],
+		Severity:    p.Annotations[SeverityAnnotation],
+		Description: p.Annotations[DescriptionAnnotation],
 	}
 
-	if meta, ok := policy["metadata"].(map[string]any); ok {
-		details.Name = utils.ToString(meta["name"])
-
-		if annotations, ok := meta["annotations"].(map[string]any); ok {
-			if t, ok := annotations[TitleAnnotation]; ok {
-				details.Title = utils.ToString(t)
-			}
-
-			details.Category = utils.ToString(annotations[CategoryAnnotation])
-			details.Severity = utils.ToString(annotations[SeverityAnnotation])
-			details.Description = utils.ToString(annotations[DescriptionAnnotation])
-
-			if s, ok := annotations[SubjectAnnotation]; ok {
-				details.Engine.Subjects = utils.Map(strings.Split(utils.ToString(s), ","), func(s string) string {
-					return strings.TrimSpace(s)
-				})
-			}
-		}
+	if t, ok := p.Annotations[TitleAnnotation]; ok {
+		details.Title = t
 	}
 
-	if spec, ok := policy["spec"].(map[string]any); ok {
-		details.Details = []sdk.DetailsItem{
-			{Title: "FailurePolicy", Value: utils.Defaults(utils.ToString(spec["failurePolicy"]), "Fail")},
-		}
+	if s, ok := p.Annotations[SubjectAnnotation]; ok {
+		details.Engine.Subjects = utils.Map(strings.Split(s, ","), strings.TrimSpace)
+	}
 
-		if validations, ok := spec["validations"].([]any); ok {
-			details.Details = append(details.Details, sdk.DetailsItem{
-				Title: "Validations", Value: fmt.Sprintf("%d", len(validations)),
-			})
-		}
+	details.Details = []sdk.DetailsItem{
+		{Title: "FailurePolicy", Value: failurePolicyValue(p.Spec.FailurePolicy)},
+	}
 
-		if matchConditions, ok := spec["matchConditions"].([]any); ok && len(matchConditions) > 0 {
-			details.Details = append(details.Details, sdk.DetailsItem{
-				Title: "MatchConditions", Value: fmt.Sprintf("%d", len(matchConditions)),
-			})
-		}
+	if len(p.Spec.Validations) > 0 {
+		details.Details = append(details.Details, sdk.DetailsItem{
+			Title: "Validations", Value: fmt.Sprintf("%d", len(p.Spec.Validations)),
+		})
+	}
 
-		if paramKind, ok := spec["paramKind"].(map[string]any); ok {
-			details.Details = append(details.Details, sdk.DetailsItem{
-				Title: "ParamKind", Value: utils.ToString(paramKind["kind"]),
-			})
-		}
+	if len(p.Spec.MatchConditions) > 0 {
+		details.Details = append(details.Details, sdk.DetailsItem{
+			Title: "MatchConditions", Value: fmt.Sprintf("%d", len(p.Spec.MatchConditions)),
+		})
+	}
+
+	if p.Spec.ParamKind != nil {
+		details.Details = append(details.Details, sdk.DetailsItem{
+			Title: "ParamKind", Value: p.Spec.ParamKind.Kind,
+		})
 	}
 
 	return details
+}
+
+// failurePolicyValue mirrors the ValidatingAdmissionPolicy admission
+// plugin's own default: an unset failurePolicy behaves as "Fail".
+func failurePolicyValue(fp *admissionregistrationv1.FailurePolicyType) string {
+	if fp == nil || *fp == "" {
+		return "Fail"
+	}
+
+	return string(*fp)
 }

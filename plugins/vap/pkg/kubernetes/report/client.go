@@ -11,6 +11,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/builder"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/mapper"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/policy"
+	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
+	versioned "github.com/openreports/reports-api/pkg/client/clientset/versioned"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -18,16 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-
 	"k8s.io/client-go/dynamic"
-
-	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
-	versioned "github.com/openreports/reports-api/pkg/client/clientset/versioned"
-
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/builder"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/mapper"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/policy"
 )
 
 // ManagedByLabel marks every Report/ClusterReport this app writes, so they

@@ -13,12 +13,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/report"
+	versioned "github.com/openreports/reports-api/pkg/client/clientset/versioned"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	versioned "github.com/openreports/reports-api/pkg/client/clientset/versioned"
-
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/report"
 )
 
 // Sweeper performs the periodic maintenance pass.

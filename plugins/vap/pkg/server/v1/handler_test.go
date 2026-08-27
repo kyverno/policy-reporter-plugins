@@ -8,12 +8,11 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
 )
 
 type fakePolicyClient struct {
