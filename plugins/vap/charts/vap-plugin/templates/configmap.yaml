@@ -29,6 +29,14 @@ data:
     reconcile:
       interval: {{ .Values.config.reconcile.interval }}
       orphanTTL: {{ .Values.config.reconcile.orphanTTL }}
+    api:
+      port: {{ .Values.config.api.port }}
+      debug: {{ .Values.config.api.debug }}
+      {{- if and .Values.config.api.basicAuth.username .Values.config.api.basicAuth.password }}
+      basicAuth:
+        username: {{ .Values.config.api.basicAuth.username | quote }}
+        password: {{ .Values.config.api.basicAuth.password | quote }}
+      {{- end }}
     logging:
       level: {{ .Values.config.logging.level }}
       development: {{ .Values.config.logging.development }}

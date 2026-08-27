@@ -170,6 +170,47 @@ missed every policy created afterward - overrides just never took effect,
 with no error anywhere pointing at why. See `policy.NewMetadataLookup`'s
 doc comment.
 
+## Policy Reporter plugin API
+
+Alongside the audit webhook receiver, vap-plugin serves the
+[Policy Reporter plugin API](https://github.com/kyverno/policy-reporter-plugins/blob/main/sdk/api/model.go)
+(the same contract implemented by the Kyverno and Trivy plugins) on its own
+plain-HTTP listener (`api.port`, default `8080` - separate from the TLS
+audit webhook receiver on `server.port`, since the two serve unrelated
+purposes and Kubernetes' audit webhook backend requires HTTPS while the
+plugin API does not):
+
+- `GET /v1/policies` - lists every `ValidatingAdmissionPolicy` in the
+  cluster.
+- `GET /v1/policies/<name>` - returns one policy's details, including its
+  full source as YAML.
+
+There is no exception-generation endpoint: unlike Kyverno,
+`ValidatingAdmissionPolicy` has no `PolicyException` equivalent.
+
+A `ValidatingAdmissionPolicy` can annotate itself to control how it's
+presented, in addition to `vap.kubernetes.io/severity` and
+`vap.kubernetes.io/category` (see "Result severity & category" above):
+
+```yaml
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: require-team-label
+  annotations:
+    vap.kubernetes.io/title: "Require Team Label"
+    vap.kubernetes.io/description: "Pods must carry a non-empty team label."
+    vap.kubernetes.io/subject: "Pod, Deployment"
+```
+
+`vap.kubernetes.io/title` falls back to a title-cased version of the policy
+name when absent; `vap.kubernetes.io/subject` is a comma-separated list
+shown as the policy's engine subjects.
+
+Optional HTTP basic auth for this listener is configured under `api.basicAuth`
+(`deploy/config.example.yaml`) - both `username` and `password` must be set
+for it to take effect.
+
 ## Configuration
 
 See [`deploy/config.example.yaml`](deploy/config.example.yaml) for all

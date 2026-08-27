@@ -15,6 +15,7 @@ type Config struct {
 	Report         ReportConfig         `mapstructure:"report"`
 	LeaderElection LeaderElectionConfig `mapstructure:"leaderElection"`
 	Reconcile      ReconcileConfig      `mapstructure:"reconcile"`
+	API            APIConfig            `mapstructure:"api"`
 	Logging        LoggingConfig        `mapstructure:"logging"`
 }
 
@@ -80,6 +81,24 @@ type ReconcileConfig struct {
 	OrphanTTL time.Duration `mapstructure:"orphanTTL"`
 }
 
+// APIConfig configures the Policy Reporter plugin API server (see
+// pkg/server), which serves policy list/detail lookups for the Policy
+// Reporter UI. This is a separate plain-HTTP listener from ServerConfig's
+// TLS audit webhook receiver - the two serve unrelated purposes and must
+// not share a port.
+type APIConfig struct {
+	Port  int             `mapstructure:"port"`
+	Debug bool            `mapstructure:"debug"`
+	Auth  BasicAuthConfig `mapstructure:"basicAuth"`
+}
+
+// BasicAuthConfig optionally protects the plugin API server with HTTP basic
+// auth. Both fields must be set for auth to be enabled.
+type BasicAuthConfig struct {
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+}
+
 // LoggingConfig configures the zap logger.
 type LoggingConfig struct {
 	Level       string `mapstructure:"level"`
@@ -110,6 +129,9 @@ func Default() Config {
 		Reconcile: ReconcileConfig{
 			Interval:  10 * time.Minute,
 			OrphanTTL: 24 * time.Hour,
+		},
+		API: APIConfig{
+			Port: 8080,
 		},
 		Logging: LoggingConfig{
 			Level: "info",

@@ -15,3 +15,6 @@ spec:
     - name: https
       port: {{ .Values.service.port }}
       targetPort: https
+    - name: api
+      port: {{ .Values.config.api.port }}
+      targetPort: api

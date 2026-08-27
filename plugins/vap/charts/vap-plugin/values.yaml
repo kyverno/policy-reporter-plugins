@@ -45,6 +45,15 @@ config:
   reconcile:
     interval: 10m
     orphanTTL: 24h
+  # Policy Reporter plugin API (list/get ValidatingAdmissionPolicy details
+  # for the Policy Reporter UI) - a separate plain-HTTP listener from the
+  # TLS audit webhook receiver above.
+  api:
+    port: 8080
+    debug: false
+    basicAuth:
+      username: ""
+      password: ""
   logging:
     level: info
     development: false

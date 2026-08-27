@@ -8,12 +8,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/metadata"
+	gocache "zgo.at/zcache/v2"
 
+	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
 	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
 	openreportsclient "github.com/openreports/reports-api/pkg/client/clientset/versioned"
 
@@ -25,6 +30,8 @@ import (
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/reconcile"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/report"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/logging"
+	pluginserver "github.com/kyverno/policy-reporter/vap-plugin/pkg/server"
+	apiv1 "github.com/kyverno/policy-reporter/vap-plugin/pkg/server/v1"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/webhook"
 )
 
@@ -105,14 +112,60 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 	}
 	reportClient := report.New(reportsClient, restMapper, dynamicClient, policyMeta, cfg.Report.Labels, cfg.Report.Annotations, builderOpts)
 
-	server := webhook.NewServer(reportClient, log, cfg.Webhook.BufferSize, cfg.Report.ReportDenied)
-	go server.Run(ctx, cfg.Webhook.Workers)
+	webhookServer := webhook.NewServer(reportClient, log, cfg.Webhook.BufferSize, cfg.Report.ReportDenied)
+	go webhookServer.Run(ctx, cfg.Webhook.Workers)
 
 	if cfg.LeaderElection.Enabled {
 		go startReconciliation(ctx, cfg, kubeClient, reportsClient, log)
 	}
 
-	return serve(ctx, cfg, server, log)
+	metaClient, err := metadata.NewForConfig(restConfig)
+	if err != nil {
+		return fmt.Errorf("building metadata client: %w", err)
+	}
+
+	policyClient := policy.NewClient(metaClient, dynamicClient, gocache.New[string, []sdk.PolicyListItem](15*time.Second, 5*time.Second))
+
+	apiServer, err := newPluginAPIServer(cfg, policyClient)
+	if err != nil {
+		return fmt.Errorf("building plugin api server: %w", err)
+	}
+
+	group := &errgroup.Group{}
+	group.Go(func() error {
+		return serve(ctx, cfg, webhookServer, log)
+	})
+	group.Go(func() error {
+		log.Info("starting policy reporter plugin api server", zap.Int("port", cfg.API.Port))
+		return apiServer.Start()
+	})
+
+	return group.Wait()
+}
+
+// newPluginAPIServer builds the plain-HTTP server exposing the Policy
+// Reporter plugin API (see pkg/server/v1), separate from the TLS audit
+// webhook listener started by serve.
+func newPluginAPIServer(cfg appconfig.Config, policyClient policy.Client) (*pluginserver.Server, error) {
+	if !cfg.API.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	options := []pluginserver.ServerOption{
+		pluginserver.WithGZIP(),
+		pluginserver.WithRecovery(),
+		apiv1.WithAPI(policyClient),
+		pluginserver.WithPort(cfg.API.Port),
+	}
+
+	if cfg.API.Auth.Username != "" && cfg.API.Auth.Password != "" {
+		options = append(options, pluginserver.WithBasicAuth(pluginserver.BasicAuth{
+			Username: cfg.API.Auth.Username,
+			Password: cfg.API.Auth.Password,
+		}))
+	}
+
+	return pluginserver.NewServer(gin.New(), options), nil
 }
 
 // newPolicyMetadataLookup syncs a policy.MetadataLookup within a bounded
