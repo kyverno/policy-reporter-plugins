@@ -16,9 +16,10 @@ limitations under the License.
 package v2
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
 	kyvernov2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // +genclient

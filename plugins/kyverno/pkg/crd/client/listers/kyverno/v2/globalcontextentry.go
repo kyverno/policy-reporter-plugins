@@ -19,10 +19,11 @@ limitations under the License.
 package v2
 
 import (
-	kyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2"
 	labels "k8s.io/apimachinery/pkg/labels"
 	listers "k8s.io/client-go/listers"
 	cache "k8s.io/client-go/tools/cache"
+
+	kyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2"
 )
 
 // GlobalContextEntryLister helps list GlobalContextEntries.

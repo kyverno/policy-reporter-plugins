@@ -4,14 +4,13 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/spf13/cobra"
-	"go.uber.org/zap"
-	"k8s.io/client-go/tools/clientcmd"
-
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/config"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/logging"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/server"
 	v1 "github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/server/vulnr/v1"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 var configFile string

@@ -23,13 +23,14 @@ import (
 	time "time"
 
 	apipolicieskyvernoiov1beta1 "github.com/kyverno/api/api/policies.kyverno.io/v1beta1"
-	versioned "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned"
-	internalinterfaces "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/internalinterfaces"
-	policieskyvernoiov1beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/listers/policies.kyverno.io/v1beta1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
+
+	versioned "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned"
+	internalinterfaces "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/internalinterfaces"
+	policieskyvernoiov1beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/listers/policies.kyverno.io/v1beta1"
 )
 
 // MutatingPolicyInformer provides access to a shared informer and lister for

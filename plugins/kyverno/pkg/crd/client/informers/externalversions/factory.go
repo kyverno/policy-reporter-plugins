@@ -23,15 +23,16 @@ import (
 	sync "sync"
 	time "time"
 
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
+	cache "k8s.io/client-go/tools/cache"
+
 	versioned "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned"
 	internalinterfaces "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/internalinterfaces"
 	kyverno "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/kyverno"
 	policieskyvernoio "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/policies.kyverno.io"
 	policyreport "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/policyreport"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	runtime "k8s.io/apimachinery/pkg/runtime"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
-	cache "k8s.io/client-go/tools/cache"
 )
 
 // SharedInformerOption defines the functional option type for SharedInformerFactory.

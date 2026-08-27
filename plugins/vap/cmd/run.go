@@ -9,6 +9,16 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
+	openreportsclient "github.com/openreports/reports-api/pkg/client/clientset/versioned"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
+	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
+
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/builder"
 	appconfig "github.com/kyverno/policy-reporter/vap-plugin/pkg/config"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/leaderelection"
@@ -20,15 +30,6 @@ import (
 	pluginserver "github.com/kyverno/policy-reporter/vap-plugin/pkg/server"
 	apiv1 "github.com/kyverno/policy-reporter/vap-plugin/pkg/server/v1"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/webhook"
-	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
-	openreportsclient "github.com/openreports/reports-api/pkg/client/clientset/versioned"
-	"github.com/spf13/cobra"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
-	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
 )
 
 func newRunCommand() *cobra.Command {

@@ -1,8 +1,9 @@
 package v2beta1
 
 import (
-	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+
+	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
 )
 
 // Rule defines a validation, mutation, or generation control for matching resources.

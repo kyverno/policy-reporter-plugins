@@ -72,7 +72,9 @@ $(GOFUMPT):
 .PHONY: gci
 gci: $(GCI)
 	@echo "Running gci"
-	@$(GCI) write -s standard -s default -s "prefix(github.com/kyverno/policy-reporter-plugins/plugins/)" ./plugins/$(PLUGIN)
+	@$(GCI) write -s standard -s default -s "prefix(github.com/kyverno/policy-reporter/kyverno-plugin/)" ./plugins/kyverno
+	@$(GCI) write -s standard -s default -s "prefix(github.com/kyverno/policy-reporter/trivy-plugin/)" ./plugins/trivy
+	@$(GCI) write -s standard -s default -s "prefix(github.com/kyverno/policy-reporter/vap-plugin/)" ./plugins/vap
 
 .PHONY: gofumpt
 gofumpt: $(GOFUMPT)

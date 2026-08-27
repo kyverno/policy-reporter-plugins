@@ -22,12 +22,13 @@ import (
 	fmt "fmt"
 
 	v1beta1 "github.com/kyverno/api/api/policies.kyverno.io/v1beta1"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
+	cache "k8s.io/client-go/tools/cache"
+
 	v1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
 	v2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2"
 	v2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"
 	v1alpha2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/policyreport/v1alpha2"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
-	cache "k8s.io/client-go/tools/cache"
 )
 
 // GenericInformer is type of SharedIndexInformer which will locate and delegate to other

@@ -19,9 +19,10 @@ limitations under the License.
 package fake
 
 import (
+	gentype "k8s.io/client-go/gentype"
+
 	v2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"
 	kyvernov2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v2beta1"
-	gentype "k8s.io/client-go/gentype"
 )
 
 // fakeClusterPolicies implements ClusterPolicyInterface

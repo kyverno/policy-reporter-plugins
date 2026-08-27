@@ -7,9 +7,8 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/v58/github"
-	"go.uber.org/zap"
-
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api"
+	"go.uber.org/zap"
 )
 
 var (

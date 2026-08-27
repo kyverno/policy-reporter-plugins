@@ -22,11 +22,12 @@ import (
 	context "context"
 
 	policieskyvernoiov1beta1 "github.com/kyverno/api/api/policies.kyverno.io/v1beta1"
-	scheme "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	gentype "k8s.io/client-go/gentype"
+
+	scheme "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
 )
 
 // NamespacedValidatingPoliciesGetter has a method to return a NamespacedValidatingPolicyInterface.

@@ -5,13 +5,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
-	"k8s.io/client-go/dynamic"
-	k8s "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/metadata"
-	"k8s.io/client-go/rest"
-	gocache "zgo.at/zcache/v2"
-
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/core"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/cveawg"
@@ -19,6 +12,12 @@ import (
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/kubernetes/secrets"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/server"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/vulnr"
+	"go.uber.org/zap"
+	"k8s.io/client-go/dynamic"
+	k8s "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/metadata"
+	"k8s.io/client-go/rest"
+	gocache "zgo.at/zcache/v2"
 )
 
 type Resolver struct {

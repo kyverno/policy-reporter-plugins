@@ -20,8 +20,9 @@ package fake
 
 import (
 	v1beta1 "github.com/kyverno/api/api/policies.kyverno.io/v1beta1"
-	policieskyvernoiov1beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1beta1"
 	gentype "k8s.io/client-go/gentype"
+
+	policieskyvernoiov1beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1beta1"
 )
 
 // fakeNamespacedDeletingPolicies implements NamespacedDeletingPolicyInterface

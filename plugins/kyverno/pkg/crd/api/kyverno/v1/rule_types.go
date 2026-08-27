@@ -1,8 +1,9 @@
 package v1
 
 import (
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/utils"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/utils"
 )
 
 type ImageExtractorConfigs map[string][]ImageExtractorConfig

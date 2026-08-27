@@ -6,10 +6,11 @@ import (
 	"strings"
 
 	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/utils"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
+
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/utils"
 )
 
 const (

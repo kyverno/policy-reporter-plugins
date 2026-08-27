@@ -1,10 +1,9 @@
 package v1
 
 import (
-	"github.com/kyverno/policy-reporter-plugins/sdk/api"
-
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/utils"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/vulnr"
+	"github.com/kyverno/policy-reporter-plugins/sdk/api"
 )
 
 func MapVulnrToDetails(v *vulnr.Vulnerability) *api.Policy {

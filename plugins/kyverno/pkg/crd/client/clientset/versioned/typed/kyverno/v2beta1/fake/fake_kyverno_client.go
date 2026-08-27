@@ -19,9 +19,10 @@ limitations under the License.
 package fake
 
 import (
-	v2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v2beta1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
+
+	v2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/kyverno/v2beta1"
 )
 
 type FakeKyvernoV2beta1 struct {

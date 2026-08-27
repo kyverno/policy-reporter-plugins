@@ -7,9 +7,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
 	"go.uber.org/zap"
 	auditv1 "k8s.io/apiserver/pkg/apis/audit/v1"
+
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/audit"
 )
 
 // Persister writes a batch of parsed VAP results - everything extracted

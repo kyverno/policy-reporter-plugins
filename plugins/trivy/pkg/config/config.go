@@ -1,10 +1,9 @@
 package config
 
 import (
-	"k8s.io/client-go/tools/clientcmd"
-
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/kubernetes/secrets"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/logging"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 type BasicAuth struct {

@@ -10,11 +10,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/itchyny/json2yaml"
+	"github.com/kyverno/policy-reporter-plugins/sdk/api"
 	"go.uber.org/zap"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/kyverno/policy-reporter-plugins/sdk/api"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
 	v1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"

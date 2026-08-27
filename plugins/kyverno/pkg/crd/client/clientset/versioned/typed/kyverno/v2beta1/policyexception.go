@@ -21,12 +21,13 @@ package v2beta1
 import (
 	context "context"
 
-	kyvernov2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"
-	scheme "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	gentype "k8s.io/client-go/gentype"
+
+	kyvernov2beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2beta1"
+	scheme "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
 )
 
 // PolicyExceptionsGetter has a method to return a PolicyExceptionInterface.
