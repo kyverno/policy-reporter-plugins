@@ -69,7 +69,7 @@ func Parse(reportDenied bool, event *auditv1.Event) Event {
 	ts := eventTimestamp(event)
 	res := resourceFromRef(event.ObjectRef)
 	if res.Name == "" {
-		zap.L().Warn("audit event has no resource name, skipping", zap.Any("event", event))
+		zap.L().Debug("audit event has no resource details, skipping", zap.Any("resource", res))
 		return Event{}
 	}
 
@@ -81,7 +81,7 @@ func Parse(reportDenied bool, event *auditv1.Event) Event {
 		hasAudit = false
 
 		if !reportDenied {
-			zap.L().Info("skipped because reportDenied is false, skipping", zap.Any("event", event), zap.Any("results", results))
+			zap.L().Info("skipped because reportDenied is false, skipping", zap.Any("event", event.ObjectRef))
 			return Event{}
 		}
 	}
