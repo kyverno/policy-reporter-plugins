@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "vap-plugin.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vap-plugin.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    server:
+      enabled: {{ .Values.server.enabled }}
+      port: 8443
+      tlsCertFile: /etc/vap-plugin/tls/tls.crt
+      tlsKeyFile: /etc/vap-plugin/tls/tls.key
+    webhook:
+      bufferSize: {{ .Values.webhook.bufferSize }}
+      workers: {{ .Values.webhook.workers }}
+    report:
+      severity: {{ .Values.report.severity | quote }}
+      category: {{ .Values.report.category | quote }}
+      labels:
+        {{- toYaml .Values.report.labels | nindent 8 }}
+      annotations:
+        {{- toYaml .Values.report.annotations | nindent 8 }}
+      reportDenied: {{ .Values.report.reportDenied }}
+    leaderElection:
+      enabled: {{ .Values.leaderElection.enabled }}
+      namespace: {{ .Release.Namespace }}
+      leaseName: {{ include "vap-plugin.fullname" . }}
+    reconcile:
+      interval: {{ .Values.reconcile.interval }}
+      orphanTTL: {{ .Values.reconcile.orphanTTL }}
+    api:
+      enabled: {{ .Values.api.enabled }}
+      port: {{ .Values.api.port }}
+      debug: {{ .Values.api.debug }}
+      {{- if and .Values.api.basicAuth.username .Values.api.basicAuth.password }}
+      basicAuth:
+        username: {{ .Values.api.basicAuth.username | quote }}
+        password: {{ .Values.api.basicAuth.password | quote }}
+      {{- end }}
+    logging:
+      level: {{ .Values.logging.level }}
+      development: {{ .Values.logging.development }}
+    autoMemoryLimit:
+      enabled: {{ .Values.autoMemoryLimit.enabled }}
+      ratio: {{ .Values.autoMemoryLimit.ratio }}

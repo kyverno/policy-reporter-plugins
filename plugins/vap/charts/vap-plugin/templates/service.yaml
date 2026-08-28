@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vap-plugin.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "vap-plugin.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.service.clusterIP }}
+  clusterIP: {{ . }}
+  {{- end }}
+  selector:
+    {{- include "vap-plugin.labels" . | nindent 4 }}
+  {{- if or .Values.server.enabled .Values.api.enabled }}
+  ports:
+    {{- if .Values.server.enabled }}
+    - name: https
+      port: {{ .Values.service.port }}
+      targetPort: https
+    {{- end }}
+    {{- if .Values.api.enabled }}
+    - name: api
+      port: {{ .Values.api.port }}
+      targetPort: api
+    {{- end }}
+  {{- end }}

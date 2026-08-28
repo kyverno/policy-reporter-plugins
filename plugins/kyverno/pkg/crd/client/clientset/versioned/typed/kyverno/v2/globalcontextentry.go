@@ -21,12 +21,13 @@ package v2
 import (
 	context "context"
 
-	kyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2"
-	scheme "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	gentype "k8s.io/client-go/gentype"
+
+	kyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2"
+	scheme "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
 )
 
 // GlobalContextEntriesGetter has a method to return a GlobalContextEntryInterface.

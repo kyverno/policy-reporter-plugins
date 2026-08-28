@@ -22,14 +22,15 @@ import (
 	context "context"
 	time "time"
 
-	apikyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2"
-	versioned "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned"
-	internalinterfaces "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/internalinterfaces"
-	kyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/listers/kyverno/v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
+
+	apikyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2"
+	versioned "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned"
+	internalinterfaces "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/internalinterfaces"
+	kyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/listers/kyverno/v2"
 )
 
 // GlobalContextEntryInformer provides access to a shared informer and lister for

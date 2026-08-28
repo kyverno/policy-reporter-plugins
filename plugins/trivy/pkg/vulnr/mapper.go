@@ -7,7 +7,6 @@ import (
 
 	"github.com/aquasecurity/trivy-db/pkg/types"
 	"github.com/google/go-github/v58/github"
-
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/cveawg"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/utils"
 )

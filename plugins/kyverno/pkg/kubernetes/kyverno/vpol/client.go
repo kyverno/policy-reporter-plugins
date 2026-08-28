@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/kyverno/api/api/policies.kyverno.io/v1beta1"
 	sdk "github.com/kyverno/policy-reporter-plugins/sdk/api"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -16,7 +17,6 @@ import (
 	"k8s.io/client-go/metadata"
 	gocache "zgo.at/zcache/v2"
 
-	"github.com/kyverno/api/api/policies.kyverno.io/v1beta1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/core"
 	policiesv1beta1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/typed/policies.kyverno.io/v1beta1"
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/kubernetes"

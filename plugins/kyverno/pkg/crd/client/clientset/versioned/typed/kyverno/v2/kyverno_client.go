@@ -21,9 +21,10 @@ package v2
 import (
 	http "net/http"
 
+	rest "k8s.io/client-go/rest"
+
 	kyvernov2 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v2"
 	scheme "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
-	rest "k8s.io/client-go/rest"
 )
 
 type KyvernoV2Interface interface {

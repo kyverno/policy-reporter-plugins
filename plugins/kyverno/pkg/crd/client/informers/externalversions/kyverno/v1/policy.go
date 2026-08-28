@@ -22,14 +22,15 @@ import (
 	context "context"
 	time "time"
 
-	apikyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
-	versioned "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned"
-	internalinterfaces "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/internalinterfaces"
-	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/listers/kyverno/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
+
+	apikyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno/v1"
+	versioned "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned"
+	internalinterfaces "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/informers/externalversions/internalinterfaces"
+	kyvernov1 "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/listers/kyverno/v1"
 )
 
 // PolicyInformer provides access to a shared informer and lister for

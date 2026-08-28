@@ -4,11 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"go.uber.org/zap"
-	gocache "zgo.at/zcache/v2"
-
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/cveawg"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/gh"
+	"go.uber.org/zap"
+	gocache "zgo.at/zcache/v2"
 )
 
 type Service struct {

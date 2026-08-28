@@ -3,11 +3,10 @@ package secrets
 import (
 	"context"
 
+	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/kubernetes"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
-
-	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/kubernetes"
 )
 
 type Values struct {

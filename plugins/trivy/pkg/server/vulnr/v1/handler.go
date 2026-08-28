@@ -9,14 +9,13 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kyverno/policy-reporter-plugins/sdk/api"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
-
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/api/core"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/server"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/utils"
 	"github.com/kyverno/policy-reporter-plugins/plugins/trivy/pkg/vulnr"
+	"github.com/kyverno/policy-reporter-plugins/sdk/api"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 type APIHandler struct {

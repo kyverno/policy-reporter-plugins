@@ -1,0 +1,69 @@
+server:
+  # Set to false to disable the audit webhook receiver entirely, e.g. for a
+  # replica that only serves the plugin API (see `api` below).
+  enabled: true
+  port: 8443
+  tlsCertFile: /etc/vap-plugin/tls/tls.crt
+  tlsKeyFile: /etc/vap-plugin/tls/tls.key
+
+webhook:
+  bufferSize: 1000
+  workers: 4
+
+report:
+  severity: ""
+  category: ""
+  labels: {}
+  annotations: {}
+  # Whether Deny-action results (requests Kubernetes actually blocked) are
+  # persisted at all. Defaults to false: a Deny already surfaces to the
+  # caller as a rejected request, so by default only Audit-action results -
+  # allowed through silently otherwise - are reported. Set to true to also
+  # report Deny-action results. This is a whole-event decision: when false,
+  # an audit event containing a Deny result is dropped entirely, including
+  # any Audit-action result recorded alongside it in that same event - see
+  # README "Reporting Deny results".
+  reportDenied: false
+
+# The reconcile sweep (see below) always runs. leaderElection only decides
+# whether it's coordinated to a single replica via a Lease - required when
+# running more than one replica, since otherwise every replica would sweep
+# independently. Leave disabled for a single-replica deployment.
+leaderElection:
+  enabled: true
+  namespace: vap-plugin
+  leaseName: vap-plugin
+
+reconcile:
+  interval: 10m
+  # How long an ownerless managed report (the common case - see README) can
+  # go without a new audit event touching it before it's assumed stale and
+  # deleted.
+  orphanTTL: 24h
+
+# Policy Reporter plugin API (see github.com/kyverno/policy-reporter-plugins/sdk/api):
+# lists ValidatingAdmissionPolicy objects and returns one policy's details
+# for the Policy Reporter UI. This is a separate plain-HTTP listener from
+# the TLS audit webhook receiver configured under `server` above.
+api:
+  # Set to false to disable the plugin API server entirely, e.g. for a
+  # replica that only receives the audit webhook (see `server` above).
+  enabled: true
+  port: 8080
+  debug: false
+  basicAuth:
+    username: ""
+    password: ""
+
+logging:
+  level: info
+  development: false
+
+# Automatically sets GOMEMLIMIT based on the container's memory limit (or
+# the host's memory when unset), so the Go runtime GCs proactively before
+# hitting an OOM kill instead of waiting for GC pressure alone to trigger.
+autoMemoryLimit:
+  enabled: true
+  # Fraction of the detected memory to reserve as GOMEMLIMIT. Must be
+  # greater than 0 and less than or equal to 1.
+  ratio: 0.9

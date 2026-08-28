@@ -22,8 +22,9 @@ import (
 	http "net/http"
 
 	policieskyvernoiov1beta1 "github.com/kyverno/api/api/policies.kyverno.io/v1beta1"
-	scheme "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
+
+	scheme "github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/client/clientset/versioned/scheme"
 )
 
 type PoliciesV1beta1Interface interface {

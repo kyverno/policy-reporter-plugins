@@ -1,13 +1,14 @@
 package v1
 
 import (
-	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno"
 	"github.com/sigstore/k8s-manifest-sigstore/pkg/k8smanifest"
 	admissionv1 "k8s.io/api/admission/v1"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/pod-security-admission/api"
+
+	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/crd/api/kyverno"
 )
 
 // FailurePolicyType specifies a failure policy that defines how unrecognized errors from the admission endpoint are handled.
