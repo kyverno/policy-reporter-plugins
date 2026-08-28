@@ -13,9 +13,7 @@ import (
 	"github.com/kyverno/policy-reporter/kyverno-plugin/pkg/server"
 )
 
-var (
-	ControllerKinds = []string{"Deployment", "DaemonSet", "StatefulSet", "CronJob", "Job"}
-)
+var ControllerKinds = []string{"Deployment", "DaemonSet", "StatefulSet", "CronJob", "Job"}
 
 type APIHandler struct {
 	client  vpol.Client

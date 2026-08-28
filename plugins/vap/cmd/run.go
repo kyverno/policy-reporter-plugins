@@ -52,9 +52,9 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 	defer func() { _ = log.Sync() }()
 
 	// Established early and used for everything below - including the
-	// policy metadata lookup's informer, which must live for the app's
-	// whole lifetime, not just through its own startup sync (see
-	// newPolicyMetadataLookup).
+	// ValidatingAdmissionPolicy informer behind the policy metadata lookup
+	// and plugin API, which must live for the app's whole lifetime, not
+	// just through its own startup sync (see config.Resolver.VAPLister).
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 

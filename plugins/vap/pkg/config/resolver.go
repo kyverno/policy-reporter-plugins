@@ -6,15 +6,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/builder"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/mapper"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/policy"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/reconcile"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/report"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/logging"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/server"
-	apiv1 "github.com/kyverno/policy-reporter/vap-plugin/pkg/server/v1"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/webhook"
 	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
 	openreportsclient "github.com/openreports/reports-api/pkg/client/clientset/versioned"
 	"go.uber.org/zap"
@@ -25,6 +16,16 @@ import (
 	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/builder"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/mapper"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/policy"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/reconcile"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/report"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/logging"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/server"
+	apiv1 "github.com/kyverno/policy-reporter/vap-plugin/pkg/server/v1"
+	"github.com/kyverno/policy-reporter/vap-plugin/pkg/webhook"
 )
 
 type Resolver struct {
@@ -161,10 +162,7 @@ func (r *Resolver) PolicyMetadataLookup(ctx context.Context) (*policy.MetadataLo
 		return nil, err
 	}
 
-	r.policyMeta, err = policy.NewMetadataLookup(ctx, vapLister)
-	if err != nil {
-		return nil, fmt.Errorf("building ValidatingAdmissionPolicy metadata lookup: %w", err)
-	}
+	r.policyMeta = policy.NewMetadataLookup(vapLister)
 	return r.policyMeta, nil
 }
 

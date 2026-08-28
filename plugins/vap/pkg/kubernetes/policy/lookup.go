@@ -4,8 +4,6 @@
 package policy
 
 import (
-	"context"
-
 	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
 )
 
@@ -46,17 +44,19 @@ type MetadataLookup struct {
 	lister admissionregistrationv1listers.ValidatingAdmissionPolicyLister
 }
 
-// NewMetadataLookup builds a MetadataLookup, blocking until its informer's
-// initial cache sync completes or syncTimeout elapses, whichever comes
-// first. ctx governs the informer's entire background watch, which keeps
-// running for as long as ctx lives - it must be a long-lived (e.g.
-// application-lifetime) context, NOT one that's cancelled once this
-// function returns: doing that once cancelled the informer's watch itself
-// moments after startup, since a stop channel doesn't distinguish "done
-// syncing" from "done for good" - it only ever saw the empty initial list,
-// missing every ValidatingAdmissionPolicy created afterwards.
-func NewMetadataLookup(ctx context.Context, lister admissionregistrationv1listers.ValidatingAdmissionPolicyLister) (*MetadataLookup, error) {
-	return &MetadataLookup{lister: lister}, nil
+// NewMetadataLookup builds a MetadataLookup backed by lister. lister must
+// already be backed by a running, synced informer - starting the informer
+// and waiting for its initial cache sync is the caller's responsibility
+// (see config.Resolver.VAPLister), since that informer is shared with other
+// consumers (e.g. the plugin API's policy.Client) and so can't be owned by
+// any one of them. In particular, whoever starts it must do so with a
+// long-lived (e.g. application-lifetime) context, NOT one that's cancelled
+// once the initial sync completes: doing that kills the informer's watch
+// itself moments after startup, since a stop channel doesn't distinguish
+// "done syncing" from "done for good" - it would only ever see the empty
+// initial list, missing every ValidatingAdmissionPolicy created afterwards.
+func NewMetadataLookup(lister admissionregistrationv1listers.ValidatingAdmissionPolicyLister) *MetadataLookup {
+	return &MetadataLookup{lister: lister}
 }
 
 // Lister returns the shared informer-backed lister backing this

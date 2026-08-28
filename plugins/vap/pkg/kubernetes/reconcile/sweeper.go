@@ -1,5 +1,8 @@
-// Package reconcile runs the periodic, leader-elected maintenance sweep
-// over managed Reports/ClusterReports. Real audit events almost never carry
+// Package reconcile runs the periodic maintenance sweep over managed
+// Reports/ClusterReports - coordinated to a single replica via leader
+// election when it's enabled (required when running more than one
+// replica), otherwise run directly (see cmd.startReconciliation). Real
+// audit events almost never carry
 // their target resource's UID (verified against a live cluster - see
 // report.LastObservedAnnotation), so a managed report usually has no
 // OwnerReference for Kubernetes to garbage-collect it by once its resource

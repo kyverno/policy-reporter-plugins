@@ -9,10 +9,26 @@ import (
 	"github.com/stretchr/testify/require"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes/fake"
+	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
+	"k8s.io/client-go/tools/cache"
 )
 
 func newLookup(t *testing.T, policies ...*admissionregistrationv1.ValidatingAdmissionPolicy) *MetadataLookup {
+	t.Helper()
+	lister, _ := newSyncedLister(t, policies...)
+	return NewMetadataLookup(lister)
+}
+
+// newSyncedLister builds a ValidatingAdmissionPolicyLister backed by a
+// running, synced informer, mirroring what config.Resolver.VAPLister does
+// in production - NewMetadataLookup itself no longer starts the informer,
+// see its doc comment. It also returns the fake clientset backing the
+// informer, so a caller can create further policies to verify the watch
+// observes them after the initial sync (see
+// TestMetadataLookup_ObservesPolicyCreatedAfterInitialSync).
+func newSyncedLister(t *testing.T, policies ...*admissionregistrationv1.ValidatingAdmissionPolicy) (admissionregistrationv1listers.ValidatingAdmissionPolicyLister, *fake.Clientset) {
 	t.Helper()
 
 	client := fake.NewSimpleClientset()
@@ -27,10 +43,16 @@ func newLookup(t *testing.T, policies ...*admissionregistrationv1.ValidatingAdmi
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	lookup, err := NewMetadataLookup(ctx, client, 5*time.Second)
-	require.NoError(t, err)
+	factory := informers.NewSharedInformerFactory(client, 0)
+	informer := factory.Admissionregistration().V1().ValidatingAdmissionPolicies()
+	sharedInformer := informer.Informer()
+	factory.Start(ctx.Done())
 
-	return lookup
+	syncCtx, syncCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer syncCancel()
+	require.True(t, cache.WaitForCacheSync(syncCtx.Done(), sharedInformer.HasSynced), "syncing informer cache")
+
+	return informer.Lister(), client
 }
 
 func policyWithAnnotation(name, severity string) *admissionregistrationv1.ValidatingAdmissionPolicy {
@@ -136,26 +158,25 @@ func TestMetadataFor_UnknownPolicy(t *testing.T) {
 	assert.Equal(t, Metadata{}, meta)
 }
 
-// Regression test: an earlier version passed the same context to both
+// Regression test: an earlier version of this informer setup (once inside
+// NewMetadataLookup itself, now in config.Resolver.VAPLister - see
+// NewMetadataLookup's doc comment) passed the same context to both
 // factory.Start (the informer's whole lifetime) and the sync-wait deadline,
-// so the deferred cancel() at the end of NewMetadataLookup killed the
-// informer's watch moments after startup - it only ever saw the empty
-// initial list, silently missing every policy created afterward. Verified
-// against a real cluster: severity overrides never took effect because of
-// this, with no error anywhere to point at it.
+// so the deferred cancel() after the sync wait killed the informer's watch
+// moments after startup - it only ever saw the empty initial list, silently
+// missing every policy created afterward. Verified against a real cluster:
+// severity overrides never took effect because of this, with no error
+// anywhere to point at it. Exercised here via newSyncedLister, which
+// reproduces the same construction, so a regression there would resurface
+// as a failure here too.
 func TestMetadataLookup_ObservesPolicyCreatedAfterInitialSync(t *testing.T) {
-	client := fake.NewSimpleClientset()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	t.Cleanup(cancel)
-
-	lookup, err := NewMetadataLookup(ctx, client, 5*time.Second)
-	require.NoError(t, err)
+	lister, client := newSyncedLister(t)
+	lookup := NewMetadataLookup(lister)
 
 	_, ok := lookup.MetadataFor("late-policy")
 	require.False(t, ok, "expected the policy to not be visible before it's created")
 
-	_, err = client.AdmissionregistrationV1().ValidatingAdmissionPolicies().Create(
+	_, err := client.AdmissionregistrationV1().ValidatingAdmissionPolicies().Create(
 		context.Background(), policyWithAnnotation("late-policy", "critical"), metav1.CreateOptions{},
 	)
 	require.NoError(t, err)
