@@ -8,28 +8,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	openreportsv1alpha1 "github.com/openreports/reports-api/apis/openreports.io/v1alpha1"
-	openreportsclient "github.com/openreports/reports-api/pkg/client/clientset/versioned"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
-	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
 
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/builder"
 	appconfig "github.com/kyverno/policy-reporter/vap-plugin/pkg/config"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/leaderelection"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/mapper"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/policy"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/reconcile"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/report"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/logging"
-	pluginserver "github.com/kyverno/policy-reporter/vap-plugin/pkg/server"
-	apiv1 "github.com/kyverno/policy-reporter/vap-plugin/pkg/server/v1"
-	"github.com/kyverno/policy-reporter/vap-plugin/pkg/webhook"
 )
 
 func newRunCommand() *cobra.Command {
@@ -59,9 +43,11 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 		cfg.Kubeconfig = kubeconfigFlag
 	}
 
-	log, err := logging.New(logging.Config{Level: cfg.Logging.Level, Development: cfg.Logging.Development})
+	resolver := appconfig.NewResolver(cfg)
+
+	log, err := resolver.Logger()
 	if err != nil {
-		return fmt.Errorf("building logger: %w", err)
+		return err
 	}
 	defer func() { _ = log.Sync() }()
 
@@ -72,65 +58,16 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 
-	restConfig, err := appconfig.RESTConfig(cfg.Kubeconfig)
+	webhookServer, err := resolver.WebhookServer(ctx)
 	if err != nil {
-		return fmt.Errorf("building kubernetes client config: %w", err)
+		return err
 	}
 
-	reportsClient, err := openreportsclient.NewForConfig(restConfig)
-	if err != nil {
-		return fmt.Errorf("building openreports client: %w", err)
-	}
-
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(restConfig)
-	if err != nil {
-		return fmt.Errorf("building discovery client: %w", err)
-	}
-	restMapper := mapper.New(discoveryClient)
-
-	dynamicClient, err := dynamic.NewForConfig(restConfig)
-	if err != nil {
-		return fmt.Errorf("building dynamic client: %w", err)
-	}
-
-	// Needed unconditionally now (not just under LeaderElection.Enabled
-	// below): the policy metadata lookup runs per-replica, independent of
-	// leader election, same as the webhook hot path itself.
-	kubeClient, err := kubernetes.NewForConfig(restConfig)
-	if err != nil {
-		return fmt.Errorf("building kubernetes client: %w", err)
-	}
-
-	policyMeta := newPolicyMetadataLookup(ctx, kubeClient, log)
-
-	builderOpts := builder.Options{
-		Severity: openreportsv1alpha1.ResultSeverity(cfg.Report.Severity),
-		Category: cfg.Report.Category,
-	}
-	reportClient := report.New(reportsClient, restMapper, dynamicClient, policyMeta, cfg.Report.Labels, cfg.Report.Annotations, builderOpts)
-
-	webhookServer := webhook.NewServer(reportClient, log, cfg.Webhook.BufferSize, cfg.Report.ReportDenied)
 	go webhookServer.Run(ctx, cfg.Webhook.Workers)
 
-	go startReconciliation(ctx, cfg, kubeClient, reportsClient, log)
+	go startReconciliation(ctx, resolver)
 
-	// Reuses policyMeta's own ValidatingAdmissionPolicy informer/lister
-	// (see policy.MetadataLookup) instead of starting a second informer or
-	// issuing separate KubeAPI calls per request - the informer's local
-	// cache already makes a request-level cache redundant. A nil policyMeta
-	// (its sync failed at startup - see newPolicyMetadataLookup) yields a
-	// nil lister; policy.Client returns an error from its methods in that
-	// case rather than panicking.
-	var policyLister admissionregistrationv1listers.ValidatingAdmissionPolicyLister
-	if policyMeta != nil {
-		policyLister = policyMeta.Lister()
-	}
-	policyClient := policy.NewClient(policyLister, policy.Defaults{
-		Severity: cfg.Report.Severity,
-		Category: cfg.Report.Category,
-	})
-
-	apiServer, err := newPluginAPIServer(cfg, policyClient)
+	apiServer, err := resolver.APIServer(ctx)
 	if err != nil {
 		return fmt.Errorf("building plugin api server: %w", err)
 	}
@@ -147,59 +84,26 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 	return group.Wait()
 }
 
-// newPluginAPIServer builds the plain-HTTP server exposing the Policy
-// Reporter plugin API (see pkg/server/v1), separate from the TLS audit
-// webhook listener started by serve.
-func newPluginAPIServer(cfg appconfig.Config, policyClient policy.Client) (*pluginserver.Server, error) {
-	if !cfg.API.Debug {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	options := []pluginserver.ServerOption{
-		pluginserver.WithGZIP(),
-		pluginserver.WithRecovery(),
-		apiv1.WithAPI(policyClient),
-		pluginserver.WithPort(cfg.API.Port),
-	}
-
-	if cfg.API.Auth.Username != "" && cfg.API.Auth.Password != "" {
-		options = append(options, pluginserver.WithBasicAuth(pluginserver.BasicAuth{
-			Username: cfg.API.Auth.Username,
-			Password: cfg.API.Auth.Password,
-		}))
-	}
-
-	return pluginserver.NewServer(gin.New(), options), nil
-}
-
-// newPolicyMetadataLookup syncs a policy.MetadataLookup within a bounded
-// startup window (so an unreachable/misbehaving ValidatingAdmissionPolicy
-// API doesn't block the webhook receiver from starting at all - the
-// severity/category overrides are best-effort, see report.New, so a sync
-// failure here just falls back to the configured defaults for every
-// result, logged rather than fatal), but ctx itself must be the app's
-// long-lived lifetime context: policy.NewMetadataLookup's own doc comment
-// covers why passing something that gets cancelled once this function
-// returns would silently kill the informer's watch moments after startup.
-func newPolicyMetadataLookup(ctx context.Context, kubeClient kubernetes.Interface, log *zap.Logger) *policy.MetadataLookup {
-	lookup, err := policy.NewMetadataLookup(ctx, kubeClient, 30*time.Second)
-	if err != nil {
-		log.Warn("failed to sync ValidatingAdmissionPolicy metadata lookup; falling back to the configured default severity/category for every result",
-			zap.Error(err))
-		return nil
-	}
-
-	return lookup
-}
-
 // startReconciliation runs the periodic orphan-TTL sweep and label
 // reconciliation (see pkg/kubernetes/reconcile). With leader election
 // enabled, it only runs on whichever replica holds the lease; with it
 // disabled, it runs directly on this replica (suitable for single-replica
 // deployments, where coordinating a lease would be pure overhead). Blocks
 // until ctx is cancelled.
-func startReconciliation(ctx context.Context, cfg appconfig.Config, kubeClient kubernetes.Interface, reportsClient openreportsclient.Interface, log *zap.Logger) {
-	sweeper := reconcile.NewSweeper(reportsClient, cfg.Report.Labels, cfg.Report.Annotations, cfg.Reconcile.OrphanTTL, log)
+func startReconciliation(ctx context.Context, resolver *appconfig.Resolver) {
+	sweeper, err := resolver.Sweeper()
+	if err != nil {
+		zap.L().Error("building sweeper", zap.Error(err))
+		return
+	}
+
+	kubeClient, err := resolver.KubeClient()
+	if err != nil {
+		zap.L().Error("building kube client", zap.Error(err))
+		return
+	}
+
+	cfg := resolver.Config()
 
 	if !cfg.LeaderElection.Enabled {
 		sweeper.Run(ctx, cfg.Reconcile.Interval)
@@ -214,10 +118,10 @@ func startReconciliation(ctx context.Context, cfg appconfig.Config, kubeClient k
 		RetryPeriod:   cfg.LeaderElection.RetryPeriod,
 	}
 
-	if err := leaderelection.Run(ctx, kubeClient, leCfg, log, func(leaderCtx context.Context) {
+	if err := leaderelection.Run(ctx, kubeClient, leCfg, zap.L(), func(leaderCtx context.Context) {
 		sweeper.Run(leaderCtx, cfg.Reconcile.Interval)
 	}); err != nil {
-		log.Error("leader election stopped", zap.Error(err))
+		zap.L().Error("leader election stopped", zap.Error(err))
 	}
 }
 

@@ -5,13 +5,8 @@ package policy
 
 import (
 	"context"
-	"fmt"
-	"time"
 
-	"k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
 	admissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
-	"k8s.io/client-go/tools/cache"
 )
 
 // SeverityAnnotation, set on a ValidatingAdmissionPolicy, overrides the
@@ -60,24 +55,8 @@ type MetadataLookup struct {
 // moments after startup, since a stop channel doesn't distinguish "done
 // syncing" from "done for good" - it only ever saw the empty initial list,
 // missing every ValidatingAdmissionPolicy created afterwards.
-func NewMetadataLookup(ctx context.Context, client kubernetes.Interface, syncTimeout time.Duration) (*MetadataLookup, error) {
-	factory := informers.NewSharedInformerFactory(client, 10*time.Minute)
-	informer := factory.Admissionregistration().V1().ValidatingAdmissionPolicies()
-
-	// informer.Informer() must be called (registering it with the factory)
-	// before factory.Start, or Start has nothing to start: registration
-	// happens lazily on first access, not when .ValidatingAdmissionPolicies()
-	// is called.
-	sharedInformer := informer.Informer()
-	factory.Start(ctx.Done())
-
-	syncCtx, cancel := context.WithTimeout(ctx, syncTimeout)
-	defer cancel()
-	if !cache.WaitForCacheSync(syncCtx.Done(), sharedInformer.HasSynced) {
-		return nil, fmt.Errorf("syncing ValidatingAdmissionPolicy informer cache: %w", syncCtx.Err())
-	}
-
-	return &MetadataLookup{lister: informer.Lister()}, nil
+func NewMetadataLookup(ctx context.Context, lister admissionregistrationv1listers.ValidatingAdmissionPolicyLister) (*MetadataLookup, error) {
+	return &MetadataLookup{lister: lister}, nil
 }
 
 // Lister returns the shared informer-backed lister backing this
