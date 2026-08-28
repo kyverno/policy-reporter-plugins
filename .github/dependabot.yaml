@@ -8,6 +8,10 @@ updates:
     directory: /plugins/trivy
     schedule:
       interval: daily
+  - package-ecosystem: gomod
+    directory: /plugins/vap
+    schedule:
+      interval: daily
   - package-ecosystem: github-actions
     directory: /
     schedule:
