@@ -1,4 +1,7 @@
 server:
+  # Set to false to disable the audit webhook receiver entirely, e.g. for a
+  # replica that only serves the plugin API (see `api` below).
+  enabled: true
   port: 8443
   tlsCertFile: /etc/vap-plugin/tls/tls.crt
   tlsKeyFile: /etc/vap-plugin/tls/tls.key
@@ -43,6 +46,9 @@ reconcile:
 # for the Policy Reporter UI. This is a separate plain-HTTP listener from
 # the TLS audit webhook receiver configured under `server` above.
 api:
+  # Set to false to disable the plugin API server entirely, e.g. for a
+  # replica that only receives the audit webhook (see `server` above).
+  enabled: true
   port: 8080
   debug: false
   basicAuth:

@@ -58,28 +58,38 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 
-	webhookServer, err := resolver.WebhookServer(ctx)
-	if err != nil {
-		return err
-	}
+	group := &errgroup.Group{}
 
-	go webhookServer.Run(ctx, cfg.Webhook.Workers)
+	if cfg.Server.Enabled {
+		webhookServer, err := resolver.WebhookServer(ctx)
+		if err != nil {
+			return err
+		}
+
+		go webhookServer.Run(ctx, cfg.Webhook.Workers)
+
+		group.Go(func() error {
+			return serve(ctx, cfg, webhookServer, log)
+		})
+	} else {
+		log.Info("audit webhook receiver disabled")
+	}
 
 	go startReconciliation(ctx, resolver)
 
-	apiServer, err := resolver.APIServer(ctx)
-	if err != nil {
-		return fmt.Errorf("building plugin api server: %w", err)
-	}
+	if cfg.API.Enabled {
+		apiServer, err := resolver.APIServer(ctx)
+		if err != nil {
+			return fmt.Errorf("building plugin api server: %w", err)
+		}
 
-	group := &errgroup.Group{}
-	group.Go(func() error {
-		return serve(ctx, cfg, webhookServer, log)
-	})
-	group.Go(func() error {
-		log.Info("starting policy reporter plugin api server", zap.Int("port", cfg.API.Port))
-		return apiServer.Start()
-	})
+		group.Go(func() error {
+			log.Info("starting policy reporter plugin api server", zap.Int("port", cfg.API.Port))
+			return apiServer.Start()
+		})
+	} else {
+		log.Info("policy reporter plugin api server disabled")
+	}
 
 	return group.Wait()
 }

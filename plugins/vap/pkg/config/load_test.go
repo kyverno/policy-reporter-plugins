@@ -41,6 +41,28 @@ report:
 	assert.False(t, cfg.Report.ReportDenied, "expected report.reportDenied to default to false when unset")
 }
 
+func TestLoad_ServerAndAPIDefaultToEnabled(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	require.NoError(t, os.WriteFile(path, []byte("logging:\n  level: debug\n"), 0o600))
+
+	cfg, err := Load(path)
+	require.NoError(t, err)
+	assert.True(t, cfg.Server.Enabled, "expected server.enabled to default to true when unset")
+	assert.True(t, cfg.API.Enabled, "expected api.enabled to default to true when unset")
+}
+
+func TestLoad_ServerAndAPICanBeDisabled(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	require.NoError(t, os.WriteFile(path, []byte("server:\n  enabled: false\napi:\n  enabled: false\n"), 0o600))
+
+	cfg, err := Load(path)
+	require.NoError(t, err)
+	assert.False(t, cfg.Server.Enabled)
+	assert.False(t, cfg.API.Enabled)
+}
+
 func TestLoad_ReportDeniedCanBeEnabled(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.yaml")

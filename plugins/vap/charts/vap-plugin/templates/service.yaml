@@ -11,10 +11,16 @@ spec:
   {{- end }}
   selector:
     {{- include "vap-plugin.labels" . | nindent 4 }}
+  {{- if or .Values.config.server.enabled .Values.config.api.enabled }}
   ports:
+    {{- if .Values.config.server.enabled }}
     - name: https
       port: {{ .Values.service.port }}
       targetPort: https
+    {{- end }}
+    {{- if .Values.config.api.enabled }}
     - name: api
       port: {{ .Values.config.api.port }}
       targetPort: api
+    {{- end }}
+  {{- end }}

@@ -8,6 +8,7 @@ metadata:
 data:
   config.yaml: |
     server:
+      enabled: {{ .Values.config.server.enabled }}
       port: 8443
       tlsCertFile: /etc/vap-plugin/tls/tls.crt
       tlsKeyFile: /etc/vap-plugin/tls/tls.key
@@ -30,6 +31,7 @@ data:
       interval: {{ .Values.config.reconcile.interval }}
       orphanTTL: {{ .Values.config.reconcile.orphanTTL }}
     api:
+      enabled: {{ .Values.config.api.enabled }}
       port: {{ .Values.config.api.port }}
       debug: {{ .Values.config.api.debug }}
       {{- if and .Values.config.api.basicAuth.username .Values.config.api.basicAuth.password }}

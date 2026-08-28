@@ -212,11 +212,17 @@ Optional HTTP basic auth for this listener is configured under `api.basicAuth`
 (`deploy/config.example.yaml`) - both `username` and `password` must be set
 for it to take effect.
 
+The audit webhook receiver and the plugin API server can each be disabled
+independently via `server.enabled` / `api.enabled` (both default `true`, and
+mirrored by the `--server-enabled` / `--api-enabled` flags on `run`) - e.g.
+to split the workload across a webhook-only replica and an API-only replica.
+
 ## Configuration
 
 See [`deploy/config.example.yaml`](deploy/config.example.yaml) for all
-options (server/TLS, webhook buffering, report labels, leader election,
-reconcile interval/TTL, logging).
+options (server/TLS, enabling/disabling the webhook and API listeners
+independently, webhook buffering, report labels, leader election, reconcile
+interval/TTL, logging).
 
 ## Cluster wiring
 

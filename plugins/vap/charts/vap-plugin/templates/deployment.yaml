@@ -23,18 +23,26 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args: ["run", "--config=/etc/vap-plugin/config.yaml"]
+          {{- if or .Values.config.server.enabled .Values.config.api.enabled }}
           ports:
+            {{- if .Values.config.server.enabled }}
             - name: https
               containerPort: 8443
+            {{- end }}
+            {{- if .Values.config.api.enabled }}
             - name: api
               containerPort: {{ .Values.config.api.port }}
+            {{- end }}
+          {{- end }}
           volumeMounts:
             - name: config
               mountPath: /etc/vap-plugin
               readOnly: true
+            {{- if .Values.config.server.enabled }}
             - name: tls
               mountPath: /etc/vap-plugin/tls
               readOnly: true
+            {{- end }}
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
@@ -43,9 +51,11 @@ spec:
         - name: config
           configMap:
             name: {{ include "vap-plugin.fullname" . }}
+        {{- if .Values.config.server.enabled }}
         - name: tls
           secret:
             secretName: {{ .Values.tls.existingSecret | default (printf "%s-tls" (include "vap-plugin.fullname" .)) }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

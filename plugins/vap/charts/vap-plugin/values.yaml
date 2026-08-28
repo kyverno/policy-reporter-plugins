@@ -28,6 +28,11 @@ rbac:
   extraResources: []
 
 config:
+  # Set to false to disable the audit webhook receiver entirely, e.g. for a
+  # replica that only serves the plugin API (see config.api.enabled below).
+  # When disabled, the TLS listener port and volume are omitted too.
+  server:
+    enabled: true
   webhook:
     bufferSize: 1000
     workers: 4
@@ -48,7 +53,11 @@ config:
   # Policy Reporter plugin API (list/get ValidatingAdmissionPolicy details
   # for the Policy Reporter UI) - a separate plain-HTTP listener from the
   # TLS audit webhook receiver above.
+  # Set to false to disable the plugin API server entirely, e.g. for a
+  # replica that only receives the audit webhook (see config.server.enabled
+  # above).
   api:
+    enabled: true
     port: 8080
     debug: false
     basicAuth:

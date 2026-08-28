@@ -1,4 +1,4 @@
-{{- if .Values.tls.certManager.enabled }}
+{{- if and .Values.config.server.enabled .Values.tls.certManager.enabled }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:

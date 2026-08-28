@@ -22,6 +22,7 @@ type Config struct {
 // ServerConfig configures the audit webhook HTTPS listener. The API
 // server's audit webhook backend requires HTTPS.
 type ServerConfig struct {
+	Enabled     bool   `mapstructure:"enabled"`
 	Port        int    `mapstructure:"port"`
 	TLSCertFile string `mapstructure:"tlsCertFile"`
 	TLSKeyFile  string `mapstructure:"tlsKeyFile"`
@@ -87,9 +88,10 @@ type ReconcileConfig struct {
 // TLS audit webhook receiver - the two serve unrelated purposes and must
 // not share a port.
 type APIConfig struct {
-	Port  int             `mapstructure:"port"`
-	Debug bool            `mapstructure:"debug"`
-	Auth  BasicAuthConfig `mapstructure:"basicAuth"`
+	Enabled bool            `mapstructure:"enabled"`
+	Port    int             `mapstructure:"port"`
+	Debug   bool            `mapstructure:"debug"`
+	Auth    BasicAuthConfig `mapstructure:"basicAuth"`
 }
 
 // BasicAuthConfig optionally protects the plugin API server with HTTP basic
@@ -110,7 +112,8 @@ type LoggingConfig struct {
 func Default() Config {
 	return Config{
 		Server: ServerConfig{
-			Port: 8443,
+			Enabled: true,
+			Port:    8443,
 		},
 		Webhook: WebhookConfig{
 			BufferSize: 1000,
@@ -131,7 +134,8 @@ func Default() Config {
 			OrphanTTL: 24 * time.Hour,
 		},
 		API: APIConfig{
-			Port: 8080,
+			Enabled: true,
+			Port:    8080,
 		},
 		Logging: LoggingConfig{
 			Level: "info",
