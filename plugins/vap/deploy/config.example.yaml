@@ -58,3 +58,12 @@ api:
 logging:
   level: info
   development: false
+
+# Automatically sets GOMEMLIMIT based on the container's memory limit (or
+# the host's memory when unset), so the Go runtime GCs proactively before
+# hitting an OOM kill instead of waiting for GC pressure alone to trigger.
+autoMemoryLimit:
+  enabled: true
+  # Fraction of the detected memory to reserve as GOMEMLIMIT. Must be
+  # greater than 0 and less than or equal to 1.
+  ratio: 0.9

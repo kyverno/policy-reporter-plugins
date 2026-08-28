@@ -10,13 +10,19 @@ type Config struct {
 	// Empty means use in-cluster config.
 	Kubeconfig string `mapstructure:"kubeconfig"`
 
-	Server         ServerConfig         `mapstructure:"server"`
-	Webhook        WebhookConfig        `mapstructure:"webhook"`
-	Report         ReportConfig         `mapstructure:"report"`
-	LeaderElection LeaderElectionConfig `mapstructure:"leaderElection"`
-	Reconcile      ReconcileConfig      `mapstructure:"reconcile"`
-	API            APIConfig            `mapstructure:"api"`
-	Logging        LoggingConfig        `mapstructure:"logging"`
+	Server          ServerConfig         `mapstructure:"server"`
+	Webhook         WebhookConfig        `mapstructure:"webhook"`
+	Report          ReportConfig         `mapstructure:"report"`
+	LeaderElection  LeaderElectionConfig `mapstructure:"leaderElection"`
+	Reconcile       ReconcileConfig      `mapstructure:"reconcile"`
+	API             APIConfig            `mapstructure:"api"`
+	Logging         LoggingConfig        `mapstructure:"logging"`
+	AutoMemoryLimit AutoMemoryLimit      `mapstructure:"autoMemoryLimit"`
+}
+
+type AutoMemoryLimit struct {
+	Enabled bool    `mapstructure:"enabled"`
+	Ratio   float64 `mapstructure:"ratio"`
 }
 
 // ServerConfig configures the audit webhook HTTPS listener. The API

@@ -8,37 +8,40 @@ metadata:
 data:
   config.yaml: |
     server:
-      enabled: {{ .Values.config.server.enabled }}
+      enabled: {{ .Values.server.enabled }}
       port: 8443
       tlsCertFile: /etc/vap-plugin/tls/tls.crt
       tlsKeyFile: /etc/vap-plugin/tls/tls.key
     webhook:
-      bufferSize: {{ .Values.config.webhook.bufferSize }}
-      workers: {{ .Values.config.webhook.workers }}
+      bufferSize: {{ .Values.webhook.bufferSize }}
+      workers: {{ .Values.webhook.workers }}
     report:
-      severity: {{ .Values.config.report.severity | quote }}
-      category: {{ .Values.config.report.category | quote }}
+      severity: {{ .Values.report.severity | quote }}
+      category: {{ .Values.report.category | quote }}
       labels:
-        {{- toYaml .Values.config.report.labels | nindent 8 }}
+        {{- toYaml .Values.report.labels | nindent 8 }}
       annotations:
-        {{- toYaml .Values.config.report.annotations | nindent 8 }}
-      reportDenied: {{ .Values.config.report.reportDenied }}
+        {{- toYaml .Values.report.annotations | nindent 8 }}
+      reportDenied: {{ .Values.report.reportDenied }}
     leaderElection:
-      enabled: {{ .Values.config.leaderElection.enabled }}
+      enabled: {{ .Values.leaderElection.enabled }}
       namespace: {{ .Release.Namespace }}
       leaseName: {{ include "vap-plugin.fullname" . }}
     reconcile:
-      interval: {{ .Values.config.reconcile.interval }}
-      orphanTTL: {{ .Values.config.reconcile.orphanTTL }}
+      interval: {{ .Values.reconcile.interval }}
+      orphanTTL: {{ .Values.reconcile.orphanTTL }}
     api:
-      enabled: {{ .Values.config.api.enabled }}
-      port: {{ .Values.config.api.port }}
-      debug: {{ .Values.config.api.debug }}
-      {{- if and .Values.config.api.basicAuth.username .Values.config.api.basicAuth.password }}
+      enabled: {{ .Values.api.enabled }}
+      port: {{ .Values.api.port }}
+      debug: {{ .Values.api.debug }}
+      {{- if and .Values.api.basicAuth.username .Values.api.basicAuth.password }}
       basicAuth:
-        username: {{ .Values.config.api.basicAuth.username | quote }}
-        password: {{ .Values.config.api.basicAuth.password | quote }}
+        username: {{ .Values.api.basicAuth.username | quote }}
+        password: {{ .Values.api.basicAuth.password | quote }}
       {{- end }}
     logging:
-      level: {{ .Values.config.logging.level }}
-      development: {{ .Values.config.logging.development }}
+      level: {{ .Values.logging.level }}
+      development: {{ .Values.logging.development }}
+    autoMemoryLimit:
+      enabled: {{ .Values.autoMemoryLimit.enabled }}
+      ratio: {{ .Values.autoMemoryLimit.ratio }}

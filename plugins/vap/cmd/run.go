@@ -43,6 +43,10 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 		cfg.Kubeconfig = kubeconfigFlag
 	}
 
+	if err := appconfig.SetupMemLimit(ctx, cfg); err != nil {
+		return fmt.Errorf("setting up memory limit: %w", err)
+	}
+
 	resolver := appconfig.NewResolver(cfg)
 
 	log, err := resolver.Logger()
