@@ -6,7 +6,7 @@ With Policy Reporter UI v2 a new plugin system will be introduced. While plugins
 
 ## Official Plugins
 
-This repostiory provides two plugins for Policy Reporter UI v2.
+This repostiory provides three plugins for Policy Reporter UI v2.
 
 ### Kyverno Plugin
 
@@ -15,6 +15,10 @@ An updated version of the already existing "Policy Reporter Kyverno Plugin". It 
 ### Trivy Plugin
 
 The new Trivy Plugin provides details about results comming from VulnerabilityReports. While the actual results still comming from PolicyReports created by [Trivy Operator Polr Adapter](https://github.com/fjogeleit/trivy-operator-polr-adapter), the plugin supplements details about CVEs and GHSA foundings, like detailed description, affected / fixed versions and references.
+
+### ValidatingAdmissionPolicy Plugin
+
+The [VAP Plugin](./plugins/vap) closes the gap for Kubernetes' native `ValidatingAdmissionPolicy` (VAP), which - unlike Kyverno - doesn't generate PolicyReports on its own. It watches the API server's audit log for VAP evaluation results and persists them as [`openreports.io/v1alpha1`](https://github.com/openreports/reports-api) `Report`/`ClusterReport` resources, so VAP compliance data shows up in the same reporting surface as every other policy engine. Alongside that audit webhook receiver, it also serves the Policy Reporter plugin API, listing `ValidatingAdmissionPolicy` objects and their details; unlike Kyverno it has no exception-generation endpoint, since `ValidatingAdmissionPolicy` has no `PolicyException` equivalent.
 
 ## API
 
