@@ -1,14 +1,17 @@
 // Package config defines and loads vap-plugin's runtime configuration.
 package config
 
-import "time"
+import (
+	"time"
+
+	"k8s.io/client-go/tools/clientcmd"
+)
 
 // Config is the root application configuration, bound from a YAML file and
 // environment variables (see Load).
 type Config struct {
-	// Kubeconfig points at a kubeconfig file for out-of-cluster use.
-	// Empty means use in-cluster config.
-	Kubeconfig string `mapstructure:"kubeconfig"`
+	Kubeconfig clientcmd.ConfigOverrides `mapstructure:"-"`
+	Local      bool                      `mapstructure:"-"`
 
 	Server          ServerConfig         `mapstructure:"server"`
 	Webhook         WebhookConfig        `mapstructure:"webhook"`
@@ -72,6 +75,7 @@ type ReportConfig struct {
 // Sweeper on exactly one replica.
 type LeaderElectionConfig struct {
 	Enabled       bool          `mapstructure:"enabled"`
+	PodName       string        `mapstructure:"podName"`
 	Namespace     string        `mapstructure:"namespace"`
 	LeaseName     string        `mapstructure:"leaseName"`
 	LeaseDuration time.Duration `mapstructure:"leaseDuration"`

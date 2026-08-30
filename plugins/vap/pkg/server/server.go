@@ -6,7 +6,9 @@
 package server
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gin-contrib/gzip"
@@ -31,10 +33,22 @@ type Server struct {
 	middleware []gin.HandlerFunc
 	engine     *gin.Engine
 	port       int
+	httpServer *http.Server
 }
 
 func (s *Server) Start() error {
-	return s.engine.Run(fmt.Sprintf(":%d", s.port))
+	err := s.httpServer.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+		return err
+	}
+
+	return nil
+}
+
+// Shutdown gracefully stops the underlying HTTP server, waiting for
+// in-flight requests to finish until ctx is done.
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.httpServer.Shutdown(ctx)
 }
 
 func (s *Server) Register(path string, handler Handler) error {
@@ -51,6 +65,11 @@ func NewServer(engine *gin.Engine, options []ServerOption) *Server {
 		if err := opt(server); err != nil {
 			zap.L().Error("failed to apply server function", zap.Error(err))
 		}
+	}
+
+	server.httpServer = &http.Server{
+		Addr:    fmt.Sprintf(":%d", server.port),
+		Handler: server.engine,
 	}
 
 	return server
