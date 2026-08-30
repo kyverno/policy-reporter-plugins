@@ -10,12 +10,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publish-images:
-    runs-on: ubuntu-latest
+  goreleaser:
     permissions:
-      packages: write
+      contents: write
       id-token: write
+      packages: write
     outputs:
+      hashes: ${{ steps.publish.outputs.hashes }}
+      image: ${{ steps.publish.outputs.image }}
       digest: ${{ steps.publish.outputs.digest }}
     steps:
       - name: Checkout
@@ -44,30 +46,39 @@ jobs:
           TAG=${{ github.ref_name }}
           echo "VERSION=${TAG#vap-plugin-v}" >> $GITHUB_ENV
 
-      - name: Publish vap Plugin
+      - name: Publish VAP Plugin
         id: publish
-        uses: ./.github/actions/publish
+        uses: ./.github/actions/goreleaser
         with:
           plugin: vap
           name: policy-reporter/vap-plugin
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
           version: ${{ env.VERSION }}
-          sbom-name: vap-plugin
-          sbom-repository: ghcr.io/${{ github.repository_owner }}/sbom/policy-reporter
-          signature-repository: ghcr.io/${{ github.repository_owner }}/signatures/policy-reporter
 
-  generate-provenance:
-    needs: publish-images
+  provenance:
+    needs:
+      - goreleaser
     permissions:
-      id-token: write   # To sign the provenance.
-      packages: write   # To upload assets to release.
-      actions: read     # To read the workflow path.
-    # NOTE: The container generator workflow is not officially released as GA.
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
+      upload-assets: true
+
+  image-provenance:
+    needs:
+      - goreleaser
+    permissions:
+      actions: read
+      id-token: write
+      packages: write
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
     with:
-      image: ghcr.io/${{ github.repository_owner }}/policy-reporter/vap-plugin
-      digest: "${{ needs.publish-images.outputs.digest }}"
+      image: ${{ needs.goreleaser.outputs.image }}
+      digest: ${{ needs.goreleaser.outputs.digest }}
       registry-username: ${{ github.actor }}
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
