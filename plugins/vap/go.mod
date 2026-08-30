@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/zap v1.27.1
 	golang.org/x/sync v0.22.0
-	golang.org/x/text v0.39.0
+	golang.org/x/text v0.41.0
 	k8s.io/api v0.36.4
 	k8s.io/apimachinery v0.36.4
 	k8s.io/apiserver v0.36.4
