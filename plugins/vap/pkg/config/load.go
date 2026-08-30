@@ -2,16 +2,18 @@ package config
 
 import (
 	"errors"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // Load reads configuration from the YAML file at path (or ./config.yaml if
 // path is empty and that file exists), then applies environment variable
 // overrides of the form SECTION_FIELD (e.g. SERVER_PORT, WEBHOOK_WORKERS),
 // on top of Default().
-func Load(path string) (Config, error) {
+func Load(path string, local bool, kubeConfig clientcmd.ConfigOverrides) (Config, error) {
 	cfg := Default()
 
 	v := viper.New()
@@ -34,6 +36,17 @@ func Load(path string) (Config, error) {
 	if err := v.Unmarshal(&cfg); err != nil {
 		return cfg, err
 	}
+
+	if cfg.LeaderElection.PodName == "" {
+		cfg.LeaderElection.PodName = os.Getenv("POD_NAME")
+	}
+
+	if cfg.LeaderElection.Namespace == "" {
+		cfg.LeaderElection.Namespace = os.Getenv("POD_NAMESPACE")
+	}
+
+	cfg.Kubeconfig = kubeConfig
+	cfg.Local = local
 
 	return cfg, nil
 }

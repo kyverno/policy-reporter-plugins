@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"net/http"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"k8s.io/client-go/tools/clientcmd"
 
 	appconfig "github.com/kyverno/policy-reporter/vap-plugin/pkg/config"
 	"github.com/kyverno/policy-reporter/vap-plugin/pkg/kubernetes/leaderelection"
@@ -18,29 +20,30 @@ import (
 
 func newRunCommand() *cobra.Command {
 	var configPath string
-	var kubeconfig string
+	var local bool
+	var kubeConfig clientcmd.ConfigOverrides
 
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Run the audit webhook receiver",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), configPath, kubeconfig)
+			return run(cmd.Context(), configPath, local, kubeConfig)
 		},
 	}
+	clientcmd.BindOverrideFlags(&kubeConfig, cmd.Flags(), clientcmd.RecommendedConfigOverrideFlags("kube-"))
 
 	cmd.Flags().StringVarP(&configPath, "config", "c", "", "path to config.yaml")
-	cmd.Flags().StringVar(&kubeconfig, "kubeconfig", "", "path to a kubeconfig file (defaults to in-cluster config)")
+	cmd.Flags().BoolVar(&local, "local", false, "run the plugin locally (for development purposes)")
+	flag.Parse()
 
 	return cmd
 }
 
-func run(ctx context.Context, configPath, kubeconfigFlag string) error {
-	cfg, err := appconfig.Load(configPath)
+func run(ctx context.Context, configPath string, local bool, kubeConfig clientcmd.ConfigOverrides) error {
+	fmt.Println(local)
+	cfg, err := appconfig.Load(configPath, local, kubeConfig)
 	if err != nil {
 		return fmt.Errorf("loading config: %w", err)
-	}
-	if kubeconfigFlag != "" {
-		cfg.Kubeconfig = kubeconfigFlag
 	}
 
 	if err := appconfig.SetupMemLimit(ctx, cfg); err != nil {
@@ -89,7 +92,11 @@ func run(ctx context.Context, configPath, kubeconfigFlag string) error {
 
 		group.Go(func() error {
 			log.Info("starting policy reporter plugin api server", zap.Int("port", cfg.API.Port))
-			return apiServer.Start()
+			if err := apiServer.Start(); err != nil {
+				return fmt.Errorf("plugin api server stopped: %w", err)
+			}
+
+			return nil
 		})
 	} else {
 		log.Info("policy reporter plugin api server disabled")
@@ -126,6 +133,7 @@ func startReconciliation(ctx context.Context, resolver *appconfig.Resolver) {
 
 	leCfg := leaderelection.Config{
 		Namespace:     cfg.LeaderElection.Namespace,
+		Identity:      cfg.LeaderElection.PodName,
 		LeaseName:     cfg.LeaderElection.LeaseName,
 		LeaseDuration: cfg.LeaderElection.LeaseDuration,
 		RenewDeadline: cfg.LeaderElection.RenewDeadline,
@@ -147,6 +155,7 @@ func serve(ctx context.Context, cfg appconfig.Config, handler http.Handler, log 
 
 	go func() {
 		<-ctx.Done()
+		fmt.Println("shutdown")
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer shutdownCancel()
 		_ = httpServer.Shutdown(shutdownCtx)
@@ -161,6 +170,8 @@ func serve(ctx context.Context, cfg appconfig.Config, handler http.Handler, log 
 		log.Warn("no TLS certificate configured; serving audit webhook over plain HTTP (the Kubernetes audit webhook backend requires HTTPS in production)")
 		serveErr = httpServer.ListenAndServe()
 	}
+
+	fmt.Println("stopped serving", serveErr)
 
 	if serveErr != nil && serveErr != http.ErrServerClosed {
 		return serveErr

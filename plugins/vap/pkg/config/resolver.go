@@ -64,10 +64,17 @@ func (r *Resolver) RESTConfig() (*rest.Config, error) {
 	}
 
 	var err error
-	r.restConfig, err = RESTConfig(r.config.Kubeconfig)
-	if err != nil {
+	var config *rest.Config
+	if r.config.Local {
+		config, err = RestConfig(r.config.Kubeconfig)
+		if err != nil {
+			return nil, fmt.Errorf("building kubernetes client config: %w", err)
+		}
+	} else if config, err = rest.InClusterConfig(); err != nil {
 		return nil, fmt.Errorf("building kubernetes client config: %w", err)
 	}
+
+	r.restConfig = config
 	return r.restConfig, nil
 }
 

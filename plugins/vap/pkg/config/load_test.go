@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 func TestLoad_ParsesFileAndDurations(t *testing.T) {
@@ -28,7 +29,7 @@ report:
 `
 	require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
 
-	cfg, err := Load(path)
+	cfg, err := Load(path, false, clientcmd.ConfigOverrides{})
 	require.NoError(t, err)
 
 	assert.Equal(t, 9443, cfg.Server.Port)
@@ -46,7 +47,7 @@ func TestLoad_ServerAndAPIDefaultToEnabled(t *testing.T) {
 	path := filepath.Join(dir, "config.yaml")
 	require.NoError(t, os.WriteFile(path, []byte("logging:\n  level: debug\n"), 0o600))
 
-	cfg, err := Load(path)
+	cfg, err := Load(path, false, clientcmd.ConfigOverrides{})
 	require.NoError(t, err)
 	assert.True(t, cfg.Server.Enabled, "expected server.enabled to default to true when unset")
 	assert.True(t, cfg.API.Enabled, "expected api.enabled to default to true when unset")
@@ -57,7 +58,7 @@ func TestLoad_ServerAndAPICanBeDisabled(t *testing.T) {
 	path := filepath.Join(dir, "config.yaml")
 	require.NoError(t, os.WriteFile(path, []byte("server:\n  enabled: false\napi:\n  enabled: false\n"), 0o600))
 
-	cfg, err := Load(path)
+	cfg, err := Load(path, false, clientcmd.ConfigOverrides{})
 	require.NoError(t, err)
 	assert.False(t, cfg.Server.Enabled)
 	assert.False(t, cfg.API.Enabled)
@@ -68,7 +69,7 @@ func TestLoad_ReportDeniedCanBeEnabled(t *testing.T) {
 	path := filepath.Join(dir, "config.yaml")
 	require.NoError(t, os.WriteFile(path, []byte("report:\n  reportDenied: true\n"), 0o600))
 
-	cfg, err := Load(path)
+	cfg, err := Load(path, false, clientcmd.ConfigOverrides{})
 	require.NoError(t, err)
 	assert.True(t, cfg.Report.ReportDenied)
 }
@@ -77,7 +78,7 @@ func TestLoad_ExplicitMissingFileIsAnError(t *testing.T) {
 	// An explicit --config path that doesn't exist is almost certainly an
 	// operator typo, so it should fail loudly rather than silently fall
 	// back to defaults.
-	_, err := Load(filepath.Join(t.TempDir(), "does-not-exist.yaml"))
+	_, err := Load(filepath.Join(t.TempDir(), "does-not-exist.yaml"), false, clientcmd.ConfigOverrides{})
 	assert.Error(t, err, "expected an error for an explicit missing config path")
 }
 
@@ -88,7 +89,7 @@ func TestLoad_NoPathFallsBackToDefaultsWhenNoLocalConfigFile(t *testing.T) {
 	require.NoError(t, os.Chdir(dir))
 	t.Cleanup(func() { _ = os.Chdir(wd) })
 
-	cfg, err := Load("")
+	cfg, err := Load("", false, clientcmd.ConfigOverrides{})
 	require.NoError(t, err)
 	assert.Equal(t, Default().Server.Port, cfg.Server.Port)
 }
