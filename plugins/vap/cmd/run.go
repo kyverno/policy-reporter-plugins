@@ -40,7 +40,6 @@ func newRunCommand() *cobra.Command {
 }
 
 func run(ctx context.Context, configPath string, local bool, kubeConfig clientcmd.ConfigOverrides) error {
-	fmt.Println(local)
 	cfg, err := appconfig.Load(configPath, local, kubeConfig)
 	if err != nil {
 		return fmt.Errorf("loading config: %w", err)
@@ -89,6 +88,13 @@ func run(ctx context.Context, configPath string, local bool, kubeConfig clientcm
 		if err != nil {
 			return fmt.Errorf("building plugin api server: %w", err)
 		}
+
+		go func() {
+			<-ctx.Done()
+			shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer shutdownCancel()
+			_ = apiServer.Shutdown(shutdownCtx)
+		}()
 
 		group.Go(func() error {
 			log.Info("starting policy reporter plugin api server", zap.Int("port", cfg.API.Port))
@@ -155,7 +161,6 @@ func serve(ctx context.Context, cfg appconfig.Config, handler http.Handler, log 
 
 	go func() {
 		<-ctx.Done()
-		fmt.Println("shutdown")
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer shutdownCancel()
 		_ = httpServer.Shutdown(shutdownCtx)
@@ -170,8 +175,6 @@ func serve(ctx context.Context, cfg appconfig.Config, handler http.Handler, log 
 		log.Warn("no TLS certificate configured; serving audit webhook over plain HTTP (the Kubernetes audit webhook backend requires HTTPS in production)")
 		serveErr = httpServer.ListenAndServe()
 	}
-
-	fmt.Println("stopped serving", serveErr)
 
 	if serveErr != nil && serveErr != http.ErrServerClosed {
 		return serveErr
