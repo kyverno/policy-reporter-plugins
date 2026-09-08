@@ -7,7 +7,7 @@ replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../../sdk/a
 require (
 	github.com/KimMachineGun/automemlimit v1.0.0
 	github.com/gin-contrib/gzip v1.2.6
-	github.com/gin-contrib/pprof v1.5.4
+	github.com/gin-contrib/pprof v1.5.5
 	github.com/gin-contrib/zap v1.1.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/itchyny/json2yaml v0.1.5
