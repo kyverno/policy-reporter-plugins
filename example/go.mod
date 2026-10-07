@@ -1,6 +1,6 @@
 module github.com/kyverno/policy-reporter-plugins/example
 
-go 1.21.3
+go 1.27.1
 
 replace github.com/kyverno/policy-reporter-plugins/sdk/api v0.0.0 => ../sdk/api
 
