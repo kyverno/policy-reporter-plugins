@@ -8,7 +8,7 @@ require (
 	github.com/KimMachineGun/automemlimit v1.0.0
 	github.com/aquasecurity/trivy-db v0.0.0-20260813095258-0e0340a01b57
 	github.com/gin-contrib/gzip v1.2.6
-	github.com/gin-contrib/pprof v1.5.4
+	github.com/gin-contrib/pprof v1.5.6
 	github.com/gin-contrib/zap v1.1.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/go-github/v58 v58.0.0
@@ -93,7 +93,7 @@ require (
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/arch v0.30.0 // indirect
-	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
