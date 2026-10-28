@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gin-contrib/gzip"
@@ -45,6 +46,15 @@ func NewServer(engine *gin.Engine, options []ServerOption) *Server {
 		engine: engine,
 		port:   8080,
 	}
+
+	// Probe handlers are registered directly on the engine so that API
+	// authentication and external vulnerability lookups cannot affect them.
+	engine.GET("/healthz", func(ctx *gin.Context) {
+		ctx.Status(http.StatusOK)
+	})
+	engine.GET("/ready", func(ctx *gin.Context) {
+		ctx.Status(http.StatusOK)
+	})
 
 	for _, opt := range options {
 		if err := opt(server); err != nil {
